@@ -137,11 +137,11 @@ function OnSendPacket(packet)
 	--if VIP_USER then ManualOrbwalk(packet) end
 end
 
-function OnCreateObj()
+function OnCreateObj(object)
 	minionManager__OnCreateObj(object)
 end
 
-function OnDeleteObj()
+function OnDeleteObj(object)
 	minionManager__OnDeleteObj(object)
 end
 
