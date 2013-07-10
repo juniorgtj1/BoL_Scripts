@@ -11,6 +11,7 @@
 -- TEST: ks
 -- TODO: finish damaga calc
 -- TODO: CDR check
+-- TODO: test SE
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -117,6 +118,7 @@ function OnTick() -- this things happen with every tick of the script
 		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then
 			qMinions:update()
 			-- return all minioins and check if q > health
+		end
 	end
 end
 
