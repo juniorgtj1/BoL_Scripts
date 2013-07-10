@@ -5,12 +5,13 @@
 -- TODO: ability lasthit
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
--- TODO: ulti if killable
--- TEST: fixxed last hit
+-- TODO: fix last hit
 -- TODO: finish damaga calc
 -- TODO: CDR check
 -- TODO: test SE
 -- TODO: mana check
+-- TODO: Tower Cage
+-- TODO: Circles
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -37,7 +38,7 @@ local Minions = iMinions(ESpell.range) -- initialize the minion class
 local qMinions = iMinions(QSpell.range, false) -- initialize the minion class for q'ing
 local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
-local AARange = myHero.range
+local AARange = myHero.range + GetDistance(myHero.minBBox)
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -72,7 +73,7 @@ function OnLoad() -- this things happens once the script loads
 	Config:addTS(ts) -- add target selector
 
 	Orbwalker:addAA() -- enable auto attacks while orbwalking
-	Orbwalker.AARange = AARange
+	Orbwalker.AARange = AARange -- set our range
 
 	if Config.aSkills then -- setup the skill autolevel
 		autoLevelSetSequence(levelSequence)
@@ -120,7 +121,7 @@ function OnTick() -- this things happen with every tick of the script
 			-- return all minioins and check if q > health
 		end
 
-		--if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
+		if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
 	end
 end
 
@@ -137,6 +138,7 @@ end
 
 function OnSendPacket(packet)
 	--if VIP_USER then Orbwalker:ManualBlock(packet) end
+	--if VIP_USER then ManualOrbwalk(packet) end
 end
 
 function KS()
@@ -149,7 +151,7 @@ function KS()
 end
 
 function FullCombo()
-
+	-- only ulti if we can kill the target
 	if ValidTarget(ts.target) then
 		PossibleDMG = CalculateDMG()
 		if PossibleDMG >= ts.target.health then
@@ -157,7 +159,6 @@ function FullCombo()
 		end
 	end
 
-	if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	QSpell:Cast(ts.target)
 	WSpell:Cast(ts.target)
 	ESpell:Cast(ts.target)
