@@ -35,7 +35,6 @@ local RSpell = iCaster(_R, nil, SPELL_SELF)
 local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, ESpell.range, DAMAGE_MAGIC, true) -- initialize the target selector
 local Summoners = iSummoners() -- initialize the summoner spells
 local Minions = iMinions(ESpell.range) -- initialize the minion class
-local qMinions = iMinions(QSpell.range, false) -- initialize the minion class for q'ing
 local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range + GetDistance(myHero.minBBox)
@@ -116,8 +115,7 @@ function OnTick() -- this things happen with every tick of the script
 
 		if Config.cage then CageNearestEnemy() end -- cage the nearest enemy
 		if Config.jungle then ClearJungle() end -- kill jungle mobs with abilities
-
-		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then QLastHit() end
+		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then QLastHit() end -- Q last hit
 
 		if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
 	end
