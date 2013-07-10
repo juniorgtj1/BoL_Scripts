@@ -1,16 +1,16 @@
 -- [[ Ryze script based on iSAC ]] --
--- TODO: look which spells reset auto attacks
 -- TODO: seperate ignite/barrier/heal
 -- TODO: support exhaust
 -- TODO: don't make them scary with e
--- TODO: ability lasth it
+-- TODO: ability lasthit
 -- TEST: auto ability lvl
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
 -- TODO: ulti if killable
 -- TEST: fixxed last hit
--- TODO: ks
+-- TEST: ks
 -- TODO: finish damaga calc
+-- TODO: CDR check
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -36,7 +36,7 @@ local Summoners = iSummoners() -- initialize the summoner spells
 local Minions = iMinions(ESpell.range) -- initialize the minion class
 local qMinions = iMinions(QSpell.range, false) -- initialize the minion class for q'ing
 local items = Items() -- initialize item class
-local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells this way, first point free
+local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range
 
 -- [[ Core ]] --
@@ -59,6 +59,7 @@ function OnLoad() -- this things happens once the script loads
 	Config:addParam("hwW", "Harass with W", SCRIPT_PARAM_ONOFF, false) -- Harass with W
 	Config:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
 	Config:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
+	Config:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
 
 	-- perma show HK1-5
 	Config:permaShow("fCombo")
@@ -101,6 +102,7 @@ function OnTick() -- this things happen with every tick of the script
 	end
 
 	if not myHero.dead then
+		if Config.ks then KS() end -- Get the kill
 		if Config.fCombo then FullCombo() end -- run full combo
 		if Config.harass then Harass() end -- harass
 
@@ -129,11 +131,20 @@ function OnProcessSpell(unit, spell)
 	Orbwalker:OnProcessSpell(unit, spell) -- seems like this keeps the "orb walking"
 end
 
+function KS()
+	for i=1, heroManager.iCount do
+		local killableEnemy = heroManager:GetHero(i)
+		if ValidTarget(killableEnemy, QSpell.range) and QSpell:Ready() and (getDmg("Q", killableEnemy, myHero) >= killableEnemy.health) then QSpell:Cast(killableEnemy) end
+		if ValidTarget(killableEnemy, ESpell.range) and ESpell:Ready() and (getDmg("E", killableEnemy, myHero) >= killableEnemy.health) then ESpell:Cast(killableEnemy) end
+		if ValidTarget(killableEnemy, WSpell.range) and WSpell:Ready() and (getDmg("W", killableEnemy, myHero) >= killableEnemy.health) then WSpell:Cast(killableEnemy) end
+	end
+end
+
 function FullCombo()
 
-	CalculateDMG()
+	print(CalculateDMG())
 
-	if Config.aUlti and ValidTarget(ts.target) and QSpell:Ready() and WSpell:Ready() and ESpell:Ready() then
+	if CalculateDMG >= ts.target.health then
 		RSpell:Cast(nil)
 	end
 
@@ -184,6 +195,10 @@ function CalculateDMG()
 		local DFGDamage = if items:have(3128) then items:Dmg(3128, ts.target) else 0 end
 		local HXGDamage = if items:have(3146) then items:Dmg(3146, ts.target) else 0 end
 		local LIANDRYSDamage = if items:have(3151) then items:Dmg(3151, ts.target) else 0 end
-		print(QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage)
+		local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage 
+		
+		return PossibleDMG
+	else
+		return nil
 	end
 end
