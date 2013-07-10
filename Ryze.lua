@@ -1,12 +1,16 @@
 -- [[ Ryze script based on iSAC ]] --
 -- TODO: look which spells reset auto attacks
 -- TODO: seperate ignite/barrier/heal
+-- TODO: support exhaust
 -- TODO: don't make them scary with e
--- TODO: ability lasthit
--- TODO: auto ability lvl
+-- TODO: ability lasth it
+-- TEST: auto ability lvl
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
 -- TODO: ulti if killable
+-- TEST: fixxed last hit
+-- TODO: ks
+-- TODO: finish damaga calc
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -29,7 +33,11 @@ local ESpell = iCaster(_E, 675, SPELL_TARGETED)
 local RSpell = iCaster(_R, nil, SPELL_SELF)
 local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, ESpell.range, DAMAGE_MAGIC, true) -- initialize the target selector
 local Summoners = iSummoners() -- initialize the summoner spells
-local Minions = iMinions(ESpell.range) -- initialzie the minion class
+local Minions = iMinions(ESpell.range) -- initialize the minion class
+local qMinions = iMinions(QSpell.range, false) -- initialize the minion class for q'ing
+local items = Items() -- initialize item class
+local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells this way, first point free
+local AARange = myHero.range
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -49,6 +57,8 @@ function OnLoad() -- this things happens once the script loads
 	Config:addParam("hwQ", "Harass with Q", SCRIPT_PARAM_ONOFF, true) -- Harass with Q
 	Config:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
 	Config:addParam("hwW", "Harass with W", SCRIPT_PARAM_ONOFF, false) -- Harass with W
+	Config:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
+	Config:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 
 	-- perma show HK1-5
 	Config:permaShow("fCombo")
@@ -61,37 +71,58 @@ function OnLoad() -- this things happens once the script loads
 	Config:addTS(ts) -- add target selector
 
 	Orbwalker:addAA() -- enable auto attacks while orbwalking
-	--Orbwalker:addReset(QSpell.spellData.name)
+	Orbwalker.AARange = AARange -- set auto attack range
 
-	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
+	if Config.aSkills then -- setup the skill autolevel
+		autoLevelSetSequence(levelSequence)
+		autoLevelSetFunction(onChoiceFunction) -- add the callback to choose the first skill
+	end
+
+	-- add all items
+	items:add("DFG", 3128) -- Deathfire Grasp
+	items:add("HXG", 3146) -- Hextech Gunblade
+	items:add("SE", 3040) -- Seraph's Embrace
+	items:add("LIANDRYS", 3151) -- Liandry's Torment
+
+	print(">> PQRyze - Yet another Ryze script<<") -- say hello
 end
 
 function OnTick() -- this things happen with every tick of the script
-	AARange = myHero.range + GetDistance(myHero.minBBox) -- what is minBBox
-	Orbwalker.AARange = AARange -- set auto attack range
-
 	if Config.aSP then -- use all summoner spells automatic
 		Summoners:AutoAll()
 	end
 
 	ts.range = ESpell.range -- set the range of our spells
 	ts:update() -- to update the enemies within the range
-	-- Use items and stuff here, first a basic rotation
+	items:update() -- update our items
+
+	if items:have(3040) then -- seraphs embrace to save our ass
+		items:Use("SE", nil, nil, (function(item, myHero) return (myHero.health / myHero.maxHealth > 0.3) end))
+	end
 
 	if not myHero.dead then
 		if Config.fCombo then FullCombo() end -- run full combo
 		if Config.harass then Harass() end -- harass
+
 		if Config.farm then
 			Minions:update() -- get the updated minions around us
-			iMinions:LastHit(AARange) -- and kill them
+			Minions:LastHit(AARange) -- and kill them
 		end
+
 		if Config.cage then CageNearestEnemy() end -- cage the nearest enemy
 		if Config.jungle then ClearJungle() end -- kill jungle mobs with abilities
+
+		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then
+			qMinions:update()
+			-- return all minioins and check if q > health
 	end
 end
 
 function OnDraw()
-	-- body
+	if Config.mMarker then -- mark killable minions
+		Minions:update()
+		Minions:marker(50, 0xFF80FF00, 5)
+	end
 end
 
 function OnProcessSpell(unit, spell)
@@ -99,6 +130,9 @@ function OnProcessSpell(unit, spell)
 end
 
 function FullCombo()
+
+	CalculateDMG()
+
 	if Config.aUlti and ValidTarget(ts.target) and QSpell:Ready() and WSpell:Ready() and ESpell:Ready() then
 		RSpell:Cast(nil)
 	end
@@ -131,4 +165,25 @@ end
 
 function ClearJungle()
 	-- body
+end
+
+function onChoiceFunction() -- our callback function for the ability leveling
+	if QSpell.spellData.level < WSpell.spellData.level then
+		return 1
+	else
+		return 2
+	end
+end
+
+function CalculateDMG()
+	if ValidTarget(ts.target) then
+		local QDamage = getDmg("Q",ts.target,myHero)
+		local WDamage = getDmg("W",ts.target,myHero)
+		local EDamage = getDmg("E",ts.targetts.target,myHero)
+		local HitDamage = getDmg("AD",ts.target,myHero)
+		local DFGDamage = if items:have(3128) then items:Dmg(3128, ts.target) else 0 end
+		local HXGDamage = if items:have(3146) then items:Dmg(3146, ts.target) else 0 end
+		local LIANDRYSDamage = if items:have(3151) then items:Dmg(3151, ts.target) else 0 end
+		print(QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage)
+	end
 end
