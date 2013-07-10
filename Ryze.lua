@@ -2,7 +2,7 @@
 -- TODO: look which spells reset auto attacks
 -- TODO: seperate ignite/barrier/heal
 -- TODO: don't make them scary with e
--- TODO: ability lasth it
+-- TODO: ability lasthit
 -- TODO: auto ability lvl
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
