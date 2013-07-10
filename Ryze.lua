@@ -9,7 +9,7 @@
 -- TODO: finish damaga calc
 -- TODO: CDR check
 -- TODO: test SE
--- TODO: mana check
+-- TODO: mana check!!!
 -- TODO: Tower Cage
 -- TODO: Circles
 
@@ -39,6 +39,7 @@ local qMinions = iMinions(QSpell.range, false) -- initialize the minion class fo
 local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range + GetDistance(myHero.minBBox)
+local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -116,10 +117,7 @@ function OnTick() -- this things happen with every tick of the script
 		if Config.cage then CageNearestEnemy() end -- cage the nearest enemy
 		if Config.jungle then ClearJungle() end -- kill jungle mobs with abilities
 
-		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then
-			qMinions:update()
-			-- return all minioins and check if q > health
-		end
+		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then QLastHit() end
 
 		if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
 	end
@@ -139,6 +137,14 @@ end
 function OnSendPacket(packet)
 	--if VIP_USER then Orbwalker:ManualBlock(packet) end
 	--if VIP_USER then ManualOrbwalk(packet) end
+end
+
+function OnCreateObj()
+	minionManager__OnCreateObj(object)
+end
+
+function OnDeleteObj()
+	minionManager__OnDeleteObj(object)
 end
 
 function KS()
@@ -165,7 +171,7 @@ function FullCombo()
 end
 
 function Harass()
-	-- check with which spells it should harass
+	-- check with which spells we should harass and fire them
 	if Config.hwQ then QSpell:Cast(ts.target) end
 	if Config.hwE then ESpell:Cast(ts.target) end
 	if Config.hwW then WSpell:Cast(ts.target) end
@@ -177,6 +183,17 @@ end
 
 function ClearJungle()
 	-- body
+end
+
+function QLastHit()
+	enemyMinions:update() -- get the newest minions
+	for _, minion in pairs(enemyMinions) do -- loop through the minions
+    	if ValidTarget(minion) and QSpell:Ready() then -- check if q is ready and the minion attackable
+        	if minion.health <= getDmg("Q", minion, myHero) then -- check if we do enough dmg
+            	QSpell:Cast(minion)	-- kill the minion
+            end 
+        end
+    end
 end
 
 function onChoiceFunction() -- our callback function for the ability leveling
