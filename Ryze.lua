@@ -3,15 +3,14 @@
 -- TODO: support exhaust
 -- TODO: don't make them scary with e
 -- TODO: ability lasthit
--- TEST: auto ability lvl
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
 -- TODO: ulti if killable
 -- TEST: fixxed last hit
--- TEST: ks
 -- TODO: finish damaga calc
 -- TODO: CDR check
 -- TODO: test SE
+-- TODO: mana check
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -36,7 +35,7 @@ local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, ESpell.range, DAMAGE_MAGIC, tr
 local Summoners = iSummoners() -- initialize the summoner spells
 local Minions = iMinions(ESpell.range) -- initialize the minion class
 local qMinions = iMinions(QSpell.range, false) -- initialize the minion class for q'ing
-local items = Items() -- initialize item class
+local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range
 
@@ -73,7 +72,7 @@ function OnLoad() -- this things happens once the script loads
 	Config:addTS(ts) -- add target selector
 
 	Orbwalker:addAA() -- enable auto attacks while orbwalking
-	Orbwalker.AARange = AARange -- set auto attack range
+	Orbwalker.AARange = AARange
 
 	if Config.aSkills then -- setup the skill autolevel
 		autoLevelSetSequence(levelSequence)
@@ -86,19 +85,20 @@ function OnLoad() -- this things happens once the script loads
 	items:add("SE", 3040) -- Seraph's Embrace
 	items:add("LIANDRYS", 3151) -- Liandry's Torment
 
-	print(">> PQRyze - Yet another Ryze script<<") -- say hello
+	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
 end
 
 function OnTick() -- this things happen with every tick of the script
 	if Config.aSP then -- use all summoner spells automatic
-		Summoners:AutoAll()
+		Summoners:AutoIgnite()
+		Summoners:AutoBarrier()
 	end
 
 	ts.range = ESpell.range -- set the range of our spells
 	ts:update() -- to update the enemies within the range
 	items:update() -- update our items
 
-	if items:have(3040) then -- seraphs embrace to save our ass
+	if items:Have(3040) then -- seraphs embrace to save our ass
 		items:Use("SE", nil, nil, (function(item, myHero) return (myHero.health / myHero.maxHealth > 0.3) end))
 	end
 
@@ -119,6 +119,8 @@ function OnTick() -- this things happen with every tick of the script
 			qMinions:update()
 			-- return all minioins and check if q > health
 		end
+
+		--if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
 	end
 end
 
@@ -133,6 +135,10 @@ function OnProcessSpell(unit, spell)
 	Orbwalker:OnProcessSpell(unit, spell) -- seems like this keeps the "orb walking"
 end
 
+function OnSendPacket(packet)
+	--if VIP_USER then Orbwalker:ManualBlock(packet) end
+end
+
 function KS()
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
@@ -144,20 +150,17 @@ end
 
 function FullCombo()
 
-	print(CalculateDMG())
-
-	if CalculateDMG >= ts.target.health then
-		RSpell:Cast(nil)
+	if ValidTarget(ts.target) then
+		PossibleDMG = CalculateDMG()
+		if PossibleDMG >= ts.target.health then
+			RSpell:Cast(nil)
+		end
 	end
 
+	if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	QSpell:Cast(ts.target)
 	WSpell:Cast(ts.target)
 	ESpell:Cast(ts.target)
-
-	if Config.orbWalk then -- workaround since Orbwalker:OrbWalk don't work
-		Orbwalker:Move(mousePos)
-		Orbwalker:Attack(ts.target)
-	end
 end
 
 function Harass()
@@ -165,11 +168,6 @@ function Harass()
 	if Config.hwQ then QSpell:Cast(ts.target) end
 	if Config.hwE then ESpell:Cast(ts.target) end
 	if Config.hwW then WSpell:Cast(ts.target) end
-
-	if Config.orbWalk then -- workaround since Orbwalker:OrbWalk don't work
-		Orbwalker:Move(mousePos)
-		Orbwalker:Attack(ts.target)
-	end
 end
 
 function CageNearestEnemy()
@@ -192,11 +190,11 @@ function CalculateDMG()
 	if ValidTarget(ts.target) then
 		local QDamage = getDmg("Q",ts.target,myHero)
 		local WDamage = getDmg("W",ts.target,myHero)
-		local EDamage = getDmg("E",ts.targetts.target,myHero)
+		local EDamage = getDmg("E",ts.target,myHero)
 		local HitDamage = getDmg("AD",ts.target,myHero)
-		local DFGDamage = if items:have(3128) then items:Dmg(3128, ts.target) else 0 end
-		local HXGDamage = if items:have(3146) then items:Dmg(3146, ts.target) else 0 end
-		local LIANDRYSDamage = if items:have(3151) then items:Dmg(3151, ts.target) else 0 end
+		local DFGDamage = (items:Dmg(3128, ts.target) or 0)
+		local HXGDamage = (items:Dmg(3146, ts.target) or 0)
+		local LIANDRYSDamage = (items:Dmg(3151, ts.target) or 0)
 		local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage 
 		
 		return PossibleDMG
