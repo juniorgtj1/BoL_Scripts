@@ -63,7 +63,7 @@ function OnLoad() -- this things happens once the script loads
 	Orbwalker:addAA() -- enable auto attacks while orbwalking
 	--Orbwalker:addReset(QSpell.spellData.name)
 
-	print(">> PQRyze - Yet another Ryze script<<") -- say hello
+	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
 end
 
 function OnTick() -- this things happen with every tick of the script
