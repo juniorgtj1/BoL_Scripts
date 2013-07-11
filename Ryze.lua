@@ -179,7 +179,7 @@ function CageNearestEnemy() -- Credits to NerdyRyze for the base
             end
     	else
             NearestEnemy = Enemy
-       	end
+    	end
 	end
 
 	if myHero:GetDistance(NearestEnemy) <= WSpell.range then WSpell:Cast(NearestEnemy) end -- Cage him
