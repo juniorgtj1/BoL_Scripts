@@ -1,17 +1,16 @@
 -- [[ Ryze script based on iSAC ]] --
--- TODO: seperate ignite/barrier/heal
+-- TODO: seperate ignite/barrier/heal -- ignite damate calc
 -- TODO: support exhaust
 -- TODO: don't make them scary with e
--- TODO: ability lasthit
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
--- TODO: fix last hit
 -- TODO: finish damaga calc
 -- TODO: CDR check
 -- TODO: test SE
 -- TODO: mana check!!!
 -- TODO: Tower Cage
 -- TODO: Circles
+-- TODO: not q during recall
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -35,10 +34,10 @@ local RSpell = iCaster(_R, nil, SPELL_SELF)
 local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, ESpell.range, DAMAGE_MAGIC, true) -- initialize the target selector
 local Summoners = iSummoners() -- initialize the summoner spells
 local Minions = iMinions(ESpell.range) -- initialize the minion class
+local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
 local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range + GetDistance(myHero.minBBox)
-local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -85,6 +84,8 @@ function OnLoad() -- this things happens once the script loads
 	items:add("HXG", 3146) -- Hextech Gunblade
 	items:add("SE", 3040) -- Seraph's Embrace
 	items:add("LIANDRYS", 3151) -- Liandry's Torment
+
+	IgniteSlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
 
 	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
 end
@@ -137,14 +138,6 @@ function OnSendPacket(packet)
 	--if VIP_USER then ManualOrbwalk(packet) end
 end
 
-function OnCreateObj(object)
-	minionManager__OnCreateObj(object)
-end
-
-function OnDeleteObj(object)
-	minionManager__OnDeleteObj(object)
-end
-
 function KS()
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
@@ -185,7 +178,7 @@ end
 
 function QLastHit()
 	enemyMinions:update() -- get the newest minions
-	for _, minion in pairs(enemyMinions) do -- loop through the minions
+	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
     	if ValidTarget(minion) and QSpell:Ready() then -- check if q is ready and the minion attackable
         	if minion.health <= getDmg("Q", minion, myHero) then -- check if we do enough dmg
             	QSpell:Cast(minion)	-- kill the minion
@@ -211,7 +204,7 @@ function CalculateDMG()
 		local DFGDamage = (items:Dmg(3128, ts.target) or 0)
 		local HXGDamage = (items:Dmg(3146, ts.target) or 0)
 		local LIANDRYSDamage = (items:Dmg(3151, ts.target) or 0)
-		local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage 
+		local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage
 		
 		return PossibleDMG
 	else
