@@ -174,19 +174,31 @@ function FullCombo() -- our full combo
 
 	if cdr <= 20 then -- if we have a low cdr
 		QSpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		WSpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		ESpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		UseUlti(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	else if cdr > 20 and cdr < 30 then -- if we are in mid game
 		QSpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		ESpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		WSpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		UseUlti(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	else -- if we are endgeared
 		QSpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		UseUlti(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		WSpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 		ESpell:Cast(ts.target)
+		if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	end
 end
 end
@@ -203,8 +215,11 @@ end
 function Harass()
 	-- check with which spells we should harass and fire them
 	if Config.hwQ then QSpell:Cast(ts.target) end
+	if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	if Config.hwE then ESpell:Cast(ts.target) end
+	if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 	if Config.hwW then WSpell:Cast(ts.target) end
+	if Config.orbWalk then Orbwalker:Orbwalk(mousePos, ts.target) end
 end
 
 function CageNearestEnemy() -- Credits to NerdyRyze for the base
