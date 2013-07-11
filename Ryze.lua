@@ -61,6 +61,7 @@ function OnLoad() -- this things happens once the script loads
 	Config:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
 	Config:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	Config:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
+	Config:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, true) -- Draw Circles
 
 	-- perma show HK1-5
 	Config:permaShow("fCombo")
@@ -128,6 +129,29 @@ function OnDraw()
 		Minions:update()
 		Minions:marker(50, 0xFF80FF00, 5)
 	end
+
+	if not myHero.dead and Config.draw then
+		-- Draw the circles for our spell ranges
+		if QSpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, QSpell.range, 0x80408000) end
+		if WSpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, WSpell.range, 0x80408000) end
+		if ESpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, ESpell.range, 0x80408000) end
+
+		-- Assign text to the target, "Murder/Kill/Harass him"
+		for i=1, heroManager.iCount do
+			local Enemy = heroManager:GetHero(i)
+			local PossibleDMG = CalculateDMG(Enemy)
+			if ValidTarget(Enemy) then
+				if (PossibleDMG / 2) >= Enemy.health then
+					PrintFloatText(Enemy, 0, "Murder him")
+				else if PossibleDMG >= Enemy.health then
+					PrintFloatText(Enemy, 0, "Kill him")
+				else
+					PrintFloatText(Enemy, 0, "Harass him")
+				end
+			end
+		end
+	end
+end
 end
 
 function OnProcessSpell(unit, spell)
@@ -151,7 +175,7 @@ end
 function FullCombo()
 	-- only ulti if we can kill the target
 	if ValidTarget(ts.target) then
-		PossibleDMG = CalculateDMG()
+		local PossibleDMG = CalculateDMG(ts.target)
 		if PossibleDMG >= ts.target.health then
 			RSpell:Cast(nil)
 		end
@@ -208,19 +232,15 @@ function onChoiceFunction() -- our callback function for the ability leveling
 	end
 end
 
-function CalculateDMG()
-	if ValidTarget(ts.target) then
-		local QDamage = getDmg("Q",ts.target,myHero)
-		local WDamage = getDmg("W",ts.target,myHero)
-		local EDamage = getDmg("E",ts.target,myHero)
-		local HitDamage = getDmg("AD",ts.target,myHero)
-		local DFGDamage = (items:Dmg(3128, ts.target) or 0)
-		local HXGDamage = (items:Dmg(3146, ts.target) or 0)
-		local LIANDRYSDamage = (items:Dmg(3151, ts.target) or 0)
-		local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage
+function CalculateDMG(Unit) -- Calculates the damage we could deal to a specific Unit
+	local QDamage = getDmg("Q",Unit,myHero)
+	local WDamage = getDmg("W",Unit,myHero)
+	local EDamage = getDmg("E",Unit,myHero)
+	local HitDamage = getDmg("AD",Unit,myHero)
+	local DFGDamage = (items:Dmg(3128, Unit) or 0)
+	local HXGDamage = (items:Dmg(3146, Unit) or 0)
+	local LIANDRYSDamage = (items:Dmg(3151, Unit) or 0)
+	local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage
 		
-		return PossibleDMG
-	else
-		return nil
-	end
+	return PossibleDMG
 end
