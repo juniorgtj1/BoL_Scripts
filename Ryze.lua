@@ -169,7 +169,7 @@ function Harass()
 	if Config.hwW then WSpell:Cast(ts.target) end
 end
 
-function CageNearestEnemy() -- Credits to NerdyRyze for the basics
+function CageNearestEnemy() -- Credits to NerdyRyze for the base
 	-- Find the nearest enemy
 	for i=1, heroManager.iCount do
 		local Enemy = heroManager:GetHero(i)
