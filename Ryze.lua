@@ -224,7 +224,29 @@ function CageNearestEnemy() -- Credits to NerdyRyze for the base
 end
 
 function ClearJungle()
-	-- body
+	for i = 1, objManager.maxObjects do
+		local obj = objManager:getObject(i)
+		if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
+			if obj.name == "TT_Spiderboss7.1.1"
+			or obj.name == "Worm12.1.1"
+			or obj.name == "AncientGolem1.1.1"
+			or obj.name == "AncientGolem7.1.1"
+			or obj.name == "LizardElder4.1.1"
+			or obj.name == "LizardElder10.1.1"
+			or obj.name == "GiantWolf2.1.3"
+			or obj.name == "GiantWolf8.1.3"
+			or obj.name == "Wraith3.1.3"
+			or obj.name == "Wraith9.1.3"
+			or obj.name == "Golem5.1.2"
+			or obj.name == "Golem11.1.2" then
+				if ValidTarget(obj) then
+					QSpell:Cast()
+					ESpell:Cast()
+					WSpell:Cast()
+				end
+			end
+		end
+	end
 end
 
 function QLastHit()
