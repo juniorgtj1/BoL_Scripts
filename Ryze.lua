@@ -1,12 +1,9 @@
 -- [[ Ryze script based on iSAC ]] --
 -- TODO: seperate ignite/barrier/heal -- ignite damate calc
 -- TODO: support exhaust
--- TODO: don't make them scary with e
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
 -- TODO: finish damaga calc
--- TODO: CDR check
--- TODO: test SE
 -- TODO: mana check!!!
 -- TODO: Tower Cage
 -- TODO: not q during recall
@@ -34,7 +31,7 @@ local ESpell = iCaster(_E, 675, SPELL_TARGETED)
 local RSpell = iCaster(_R, nil, SPELL_SELF)
 local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, QSpell.range, DAMAGE_MAGIC, true) -- initialize the target selector
 local Summoners = iSummoners() -- initialize the summoner spells
-local Minions = iMinions(ESpell.range) -- initialize the minion class
+local Minions = iMinions(QSpell.range) -- initialize the minion class
 local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
 --local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
@@ -124,7 +121,7 @@ function OnTick() -- this things happen with every tick of the script
 	end
 end
 
-function OnDraw()
+function OnDraw() -- draws awesome circles
 	if Config.mMarker then -- mark killable minions
 		Minions:update()
 		Minions:marker(50, 0xFF80FF00, 5)
@@ -154,16 +151,16 @@ function OnDraw()
 end
 end
 
-function OnProcessSpell(unit, spell)
+function OnProcessSpell(unit, spell) -- is fired if a spell is used
 	Orbwalker:OnProcessSpell(unit, spell) -- helps with the auto attacks
 end
 
-function OnSendPacket(packet)
+function OnSendPacket(packet) -- VIP only, is fired if a packed is send
 	--if VIP_USER then Orbwalker:ManualBlock(packet) end
 	--if VIP_USER then ManualOrbwalk(packet) end
 end
 
-function KS()
+function KS() -- get the kills
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
 		if ValidTarget(killableEnemy, QSpell.range) and QSpell:Ready() and (getDmg("Q", killableEnemy, myHero) >= killableEnemy.health) then QSpell:Cast(killableEnemy) end
@@ -172,47 +169,37 @@ function KS()
 	end
 end
 
-function FullCombo()
-	-- only ulti if we can kill the target
-	--[[
-	if ValidTarget(ts.target) then
-		local PossibleDMG = CalculateDMG(ts.target)
-		if PossibleDMG >= ts.target.health then
-			RSpell:Cast(nil)
-		end
-	end
-	--]]
-
+function FullCombo() -- our full combo
 	local cdr = math.abs(myHero.cdr*100) -- our cooldown reduction
 
-	if cdr <= 20 then
+	if cdr <= 20 then -- if we have a low cdr
 		QSpell:Cast(ts.target)
 		WSpell:Cast(ts.target)
 		ESpell:Cast(ts.target)
-		if ValidTarget(ts.target) then
-			local PossibleDMG = CalculateDMG(ts.target)
-			if PossibleDMG >= ts.target.health then RSpell:Cast(nil) end
-		end
-	else if cdr > 20 and cdr < 30 then
+		UseUlti(ts.target)
+	else if cdr > 20 and cdr < 30 then -- if we are in mid game
 		QSpell:Cast(ts.target)
 		ESpell:Cast(ts.target)
 		WSpell:Cast(ts.target)
-		if ValidTarget(ts.target) then
-			local PossibleDMG = CalculateDMG(ts.target)
-			if PossibleDMG >= ts.target.health then RSpell:Cast(nil) end
-		end
-	else
+		UseUlti(ts.target)
+	else -- if we are endgeared
 		QSpell:Cast(ts.target)
-		if ValidTarget(ts.target) then
-			local PossibleDMG = CalculateDMG(ts.target)
-			if PossibleDMG >= ts.target.health then RSpell:Cast(nil) end
-		end
+		UseUlti(ts.target)
 		WSpell:Cast(ts.target)
 		ESpell:Cast(ts.target)
 	end
 end
 end
 
+function UseUlti(Unit) -- Checks different situations where it should use ulti
+	if ValidTarget(Unit) and Config.aUlti then
+		local PossibleDMG = CalculateDMG(ts.target)
+		local EnemysInRange = CountEnemyHeroInRange()
+		if ((PossibleDMG >= ts.target.health) and ((PossibleDMG /2) <= ts.target.health)) or EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5)
+			then RSpell:Cast(nil)
+		end
+	end
+end
 function Harass()
 	-- check with which spells we should harass and fire them
 	if Config.hwQ then QSpell:Cast(ts.target) end
