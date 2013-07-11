@@ -131,7 +131,7 @@ function OnDraw()
 end
 
 function OnProcessSpell(unit, spell)
-	Orbwalker:OnProcessSpell(unit, spell) -- seems like this keeps the "orb walking"
+	Orbwalker:OnProcessSpell(unit, spell) -- helps with the auto attacks
 end
 
 function OnSendPacket(packet)
