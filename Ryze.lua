@@ -38,6 +38,7 @@ local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SO
 local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range + GetDistance(myHero.minBBox)
+local NearestEnemy = nil
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -168,8 +169,20 @@ function Harass()
 	if Config.hwW then WSpell:Cast(ts.target) end
 end
 
-function CageNearestEnemy()
-	-- body
+function CageNearestEnemy() -- Credits to NerdyRyze for the basics
+	-- Find the nearest enemy
+	for i=1, heroManager.iCount do
+		local Enemy = heroManager:GetHero(i)
+        if ValidTarget(NearestEnemy) and ValidTarget(Enemy) then
+        	if GetDistance(Enemy) < GetDistance(NearestEnemy) then
+            	NearestEnemy = Enemy
+            end
+    	else
+            NearestEnemy = Enemy
+       	end
+	end
+
+	if myHero:GetDistance(NearestEnemy) <= WSpell.range then WSpell:Cast(NearestEnemy) end -- Cage him
 end
 
 function ClearJungle()
