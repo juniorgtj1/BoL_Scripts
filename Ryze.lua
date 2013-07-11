@@ -9,8 +9,9 @@
 -- TODO: test SE
 -- TODO: mana check!!!
 -- TODO: Tower Cage
--- TODO: Circles
 -- TODO: not q during recall
+-- TODO: fix drawing kills ingame draws
+-- TODO: include iTems if fixxed
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
 
@@ -31,11 +32,11 @@ local QSpell = iCaster(_Q, 650, SPELL_TARGETED)
 local WSpell = iCaster(_W, 625, SPELL_TARGETED)
 local ESpell = iCaster(_E, 675, SPELL_TARGETED)
 local RSpell = iCaster(_R, nil, SPELL_SELF)
-local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, ESpell.range, DAMAGE_MAGIC, true) -- initialize the target selector
+local ts = TargetSelector(TARGET_LOW_HP_PRIORITY, QSpell.range, DAMAGE_MAGIC, true) -- initialize the target selector
 local Summoners = iSummoners() -- initialize the summoner spells
 local Minions = iMinions(ESpell.range) -- initialize the minion class
 local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
-local items = iTems() -- initialize item class
+--local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range + GetDistance(myHero.minBBox)
 local NearestEnemy = nil
@@ -60,6 +61,7 @@ function OnLoad() -- this things happens once the script loads
 	Config:addParam("hwW", "Harass with W", SCRIPT_PARAM_ONOFF, false) -- Harass with W
 	Config:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
 	Config:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
+	Config:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	Config:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
 	Config:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, true) -- Draw Circles
 
@@ -81,11 +83,12 @@ function OnLoad() -- this things happens once the script loads
 		autoLevelSetFunction(onChoiceFunction) -- add the callback to choose the first skill
 	end
 
-	-- add all items
+	--[[  Item class somehow buggy, need a apple fix
 	items:add("DFG", 3128) -- Deathfire Grasp
 	items:add("HXG", 3146) -- Hextech Gunblade
 	items:add("SE", 3040) -- Seraph's Embrace
 	items:add("LIANDRYS", 3151) -- Liandry's Torment
+	]]--
 
 	IgniteSlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
 
@@ -100,11 +103,8 @@ function OnTick() -- this things happen with every tick of the script
 
 	ts.range = ESpell.range -- set the range of our spells
 	ts:update() -- to update the enemies within the range
-	items:update() -- update our items
 
-	if items:Have(3040) then -- seraphs embrace to save our ass
-		items:Use("SE", nil, nil, (function(item, myHero) return (myHero.health / myHero.maxHealth > 0.3) end))
-	end
+	if GetInventoryHaveItem(3040) and (myHero.health / myHero.maxHealth <= 0.3) then CastItem(3040) end -- use serapths embrace
 
 	if not myHero.dead then
 		if Config.ks then KS() end -- Get the kill
@@ -118,7 +118,7 @@ function OnTick() -- this things happen with every tick of the script
 
 		if Config.cage then CageNearestEnemy() end -- cage the nearest enemy
 		if Config.jungle then ClearJungle() end -- kill jungle mobs with abilities
-		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) then QLastHit() end -- Q last hit
+		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) and (((myHero.mana/myHero.maxMana)*100) >= Config.lhQM) then QLastHit() end -- Q last hit
 
 		if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
 	end
@@ -174,16 +174,43 @@ end
 
 function FullCombo()
 	-- only ulti if we can kill the target
+	--[[
 	if ValidTarget(ts.target) then
 		local PossibleDMG = CalculateDMG(ts.target)
 		if PossibleDMG >= ts.target.health then
 			RSpell:Cast(nil)
 		end
 	end
+	--]]
 
-	QSpell:Cast(ts.target)
-	WSpell:Cast(ts.target)
-	ESpell:Cast(ts.target)
+	local cdr = math.abs(myHero.cdr*100) -- our cooldown reduction
+
+	if cdr <= 20 then
+		QSpell:Cast(ts.target)
+		WSpell:Cast(ts.target)
+		ESpell:Cast(ts.target)
+		if ValidTarget(ts.target) then
+			local PossibleDMG = CalculateDMG(ts.target)
+			if PossibleDMG >= ts.target.health then RSpell:Cast(nil) end
+		end
+	else if cdr > 20 and cdr < 30 then
+		QSpell:Cast(ts.target)
+		ESpell:Cast(ts.target)
+		WSpell:Cast(ts.target)
+		if ValidTarget(ts.target) then
+			local PossibleDMG = CalculateDMG(ts.target)
+			if PossibleDMG >= ts.target.health then RSpell:Cast(nil) end
+		end
+	else
+		QSpell:Cast(ts.target)
+		if ValidTarget(ts.target) then
+			local PossibleDMG = CalculateDMG(ts.target)
+			if PossibleDMG >= ts.target.health then RSpell:Cast(nil) end
+		end
+		WSpell:Cast(ts.target)
+		ESpell:Cast(ts.target)
+	end
+end
 end
 
 function Harass()
@@ -237,10 +264,13 @@ function CalculateDMG(Unit) -- Calculates the damage we could deal to a specific
 	local WDamage = getDmg("W",Unit,myHero)
 	local EDamage = getDmg("E",Unit,myHero)
 	local HitDamage = getDmg("AD",Unit,myHero)
+	--[[
 	local DFGDamage = (items:Dmg(3128, Unit) or 0)
 	local HXGDamage = (items:Dmg(3146, Unit) or 0)
 	local LIANDRYSDamage = (items:Dmg(3151, Unit) or 0)
 	local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage
+	--]]
+	local PossibleDMG = QDamage+WDamage+EDamage+HitDamage
 		
 	return PossibleDMG
 end
