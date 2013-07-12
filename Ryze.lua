@@ -42,13 +42,14 @@ local NearestEnemy = nil
 function OnLoad() -- this things happens once the script loads
 	Config = scriptConfig("PQRyze - Yet another Ryze script","PQRyze") -- Create a save file
 
+	-- Active
 	Config:addParam("fCombo", "Full Combo", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- full combo
 	Config:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- harass
 	Config:addParam("farm", "Farm", SCRIPT_PARAM_ONKEYDOWN, false, HK3) -- farm
 	Config:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK4) -- cage
 	Config:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYDOWN, false, HK5) -- jungle clearing
 
-	Config:addParam("mMarker", "Minion Marker", SCRIPT_PARAM_ONOFF, true) -- marking killable minions
+	-- Settings
 	Config:addParam("orbWalk", "Orb Walking", SCRIPT_PARAM_ONOFF, true) -- orb walking while farming/combo
 	Config:addParam("aUlti", "Use Ulti in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if ulti should be used in full combo
 	Config:addParam("aItems", "Use Items in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if items should be used in full combo
@@ -60,7 +61,15 @@ function OnLoad() -- this things happens once the script loads
 	Config:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	Config:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	Config:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
+
+	-- Visual
+	Config:addParam("mMarker", "Minion Marker", SCRIPT_PARAM_ONOFF, true) -- marking killable minions
 	Config:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
+
+	-- Masterys
+	Config:addParam("Butcher", "Butcher", SCRIPT_PARAM_SLICE, 0, 0, 2, 0)
+	Config:addParam("Spellblade", "Spellblade", SCRIPT_PARAM_ONOFF, false)
+	Config:addParam("Executioner", "Executioner", SCRIPT_PARAM_ONOFF, false)
 
 	-- perma show HK1-5
 	Config:permaShow("fCombo")
