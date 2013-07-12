@@ -256,8 +256,11 @@ function ClearJungle()
 			or obj.name == "Golem11.1.2" then
 				if ValidTarget(obj) then
 					QSpell:Cast(obj)
+					if Config.orbWalk then Orbwalker:Orbwalk(mousePos, obj) end
 					ESpell:Cast(obj)
+					if Config.orbWalk then Orbwalker:Orbwalk(mousePos, obj) end
 					WSpell:Cast(obj)
+					if Config.orbWalk then Orbwalker:Orbwalk(mousePos, obj) end
 				end
 			end
 		end
