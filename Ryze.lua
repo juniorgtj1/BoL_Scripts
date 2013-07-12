@@ -36,7 +36,7 @@ local AARange = myHero.range + GetDistance(myHero.minBBox) -- auto attack range
 local NearestEnemy = nil -- nearest champ
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
-local waittxt = {} -- prevents UI lags, all credits to WomboCombo
+local waittxt = {} -- prevents UI lags, all credits to Dekaron
 local DFGReady, HXGReady, SEReady, IGNITEReady = false, false, false, false -- item/ignite cooldown
 local DFGSlot, HXGSlot, SESlot, SHEENSlot, TRINITYSlot, LICHBANESlot = nil, nil, nil, nil, nil, nil -- item slots
 
@@ -101,7 +101,7 @@ function OnLoad() -- this things happens once the script loads
 
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
 	
-	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to WomboCombo
+	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
 	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
 end
@@ -149,7 +149,7 @@ function OnDraw() -- draws awesome circles
 		if WSpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, WSpell.range, 0x80408000) end
 		if ESpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, ESpell.range, 0x80408000) end
 
-		-- Assign text to the target, "Murder/Kill/Harass him" Credits for the base/fix to WomboCombo
+		-- Assign text to the target, "Murder/Kill/Harass him" Credits for the base/fix to Dekaron
 		for i=1, heroManager.iCount do
 			local Unit = heroManager:GetHero(i)
 			if ValidTarget(Unit) then -- we draw our circles
