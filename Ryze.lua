@@ -255,9 +255,9 @@ function ClearJungle()
 			or obj.name == "Golem5.1.2"
 			or obj.name == "Golem11.1.2" then
 				if ValidTarget(obj) then
-					QSpell:Cast()
-					ESpell:Cast()
-					WSpell:Cast()
+					QSpell:Cast(obj)
+					ESpell:Cast(obj)
+					WSpell:Cast(obj)
 				end
 			end
 		end
