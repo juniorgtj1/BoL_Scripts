@@ -3,11 +3,8 @@
 -- TODO: support exhaust
 -- TODO: fix perma show
 -- TODO: AA if not orbwalking
--- TODO: finish damaga calc
--- TODO: mana check!!!
 -- TODO: Tower Cage
 -- TODO: not q during recall
--- TODO: fix drawing kills ingame draws
 -- TODO: include iTems if fixxed
 
 if myHero.charName ~= "Ryze" then return end -- check if we have to run the script
@@ -35,8 +32,14 @@ local Minions = iMinions(QSpell.range) -- initialize the minion class
 local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
 --local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
-local AARange = myHero.range + GetDistance(myHero.minBBox)
-local NearestEnemy = nil
+local AARange = myHero.range + GetDistance(myHero.minBBox) -- auto attack range
+local NearestEnemy = nil -- nearest champ
+local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
+local killable = {} -- our enemy array where stored if people are killable
+local waittxt = {} -- prevents UI lags, all credits to WomboCombo
+local DFGReady, HXGReady, SEReady, IGNITEReady = false, false, false, false -- item/ignite cooldown
+local DFGSlot, HXGSlot, SESlot, SHEENSlot, TRINITYSlot, LICHBANESlot = nil, nil, nil, nil, nil, nil -- item slots
+
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -96,7 +99,9 @@ function OnLoad() -- this things happens once the script loads
 	items:add("LIANDRYS", 3151) -- Liandry's Torment
 	]]--
 
-	IgniteSlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
+	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
+	
+	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to WomboCombo
 
 	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
 end
@@ -109,8 +114,10 @@ function OnTick() -- this things happen with every tick of the script
 
 	ts.range = ESpell.range -- set the range of our spells
 	ts:update() -- to update the enemies within the range
+	CooldownHandler() -- check item/summoner cd's
+	DMGCalculation() -- mark killable champs
 
-	if GetInventoryHaveItem(3040) and (myHero.health / myHero.maxHealth <= 0.3) then CastItem(3040) end -- use serapths embrace
+	if SEReady and (myHero.health / myHero.maxHealth <= 0.3) then CastItem(3040) end -- use serapths embrace
 
 	if not myHero.dead then
 		if Config.ks then KS() end -- Get the kill
@@ -126,7 +133,7 @@ function OnTick() -- this things happen with every tick of the script
 		if Config.jungle then ClearJungle() end -- kill jungle mobs with abilities
 		if Config.lhQ and not (Config.fCombo or Config.harass or Config.cage or Config.jungle) and (((myHero.mana/myHero.maxMana)*100) >= Config.lhQM) then QLastHit() end -- Q last hit
 
-		if Config.orbWalk and (Config.fCombo or Config.harass or Config.farm or Config.cage or Config.jungle) then Orbwalker:Orbwalk(mousePos, ts.target) end
+		if Config.orbWalk and (Config.farm or Config.cage or Config.jungle) then Orbwalker:Move(mousePos) end
 	end
 end
 
@@ -142,22 +149,43 @@ function OnDraw() -- draws awesome circles
 		if WSpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, WSpell.range, 0x80408000) end
 		if ESpell:Ready() then DrawCircle(myHero.x, myHero.y, myHero.z, ESpell.range, 0x80408000) end
 
-		-- Assign text to the target, "Murder/Kill/Harass him"
+		-- Assign text to the target, "Murder/Kill/Harass him" Credits for the base/fix to WomboCombo
 		for i=1, heroManager.iCount do
-			local Enemy = heroManager:GetHero(i)
-			local PossibleDMG = CalculateDMG(Enemy)
-			if ValidTarget(Enemy) then
-				if (PossibleDMG / 2) >= Enemy.health then
-					PrintFloatText(Enemy, 0, "Murder him")
-				else if PossibleDMG >= Enemy.health then
-					PrintFloatText(Enemy, 0, "Kill him")
-				else
-					PrintFloatText(Enemy, 0, "Harass him")
-				end
+			local Unit = heroManager:GetHero(i)
+			if ValidTarget(Unit) then -- we draw our circles
+				 if killable[i] == 1 then
+				 	DrawCircle(Unit.x, Unit.y, Unit.z, 100, 0xFFFFFF00)
+				 end
+
+				 if killable[i] == 2 then
+				 	DrawCircle(Unit.x, Unit.y, Unit.z, 100, 0xFFFFFF00)
+				 end
+
+				 if killable[i] == 3 then
+				 	for j=0, 10 do
+				 		DrawCircle(Unit.x, Unit.y, Unit.z, 100+j*0.8, 0x099B2299)
+				 	end
+				 end
+
+				 if killable[i] == 4 then
+				 	for j=0, 10 do
+				 		DrawCircle(Unit.x, Unit.y, Unit.z, 100+j*0.8, 0x099B2299)
+				 	end
+				 end
+
+				 if waittxt[i] == 1 and killable[i] ~= 0 then
+				 	PrintFloatText(Unit,0,floattext[killable[i]])
+				 end
 			end
+
+			if waittxt[i] == 1 then
+				waittxt[i] = 30
+			else
+				waittxt[i] = waittxt[i]-1
+			end
+
 		end
 	end
-end
 end
 
 function OnProcessSpell(unit, spell) -- is fired if a spell is used
@@ -214,9 +242,8 @@ end
 
 function UseUlti(Unit) -- Checks different situations where it should use ulti
 	if ValidTarget(Unit) and Config.aUlti then
-		local PossibleDMG = CalculateDMG(ts.target)
 		local EnemysInRange = CountEnemyHeroInRange()
-		if ((PossibleDMG >= ts.target.health) and ((PossibleDMG /2) <= ts.target.health)) or EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5)
+		if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5)
 			then RSpell:Cast(nil)
 		end
 	end
@@ -295,18 +322,82 @@ function onChoiceFunction() -- our callback function for the ability leveling
 	end
 end
 
-function CalculateDMG(Unit) -- Calculates the damage we could deal to a specific Unit
-	local QDamage = getDmg("Q",Unit,myHero)
-	local WDamage = getDmg("W",Unit,myHero)
-	local EDamage = getDmg("E",Unit,myHero)
-	local HitDamage = getDmg("AD",Unit,myHero)
-	--[[
-	local DFGDamage = (items:Dmg(3128, Unit) or 0)
-	local HXGDamage = (items:Dmg(3146, Unit) or 0)
-	local LIANDRYSDamage = (items:Dmg(3151, Unit) or 0)
-	local PossibleDMG = QDamage+WDamage+EDamage+HitDamage+DFGDamage+HXGDamage+LIANDRYSDamage
-	--]]
-	local PossibleDMG = QDamage+WDamage+EDamage+HitDamage
-		
-	return PossibleDMG
+function CooldownHandler()
+	DFGSlot, HXGSlot, SESlot, SHEENSlot, TRINITYSlot, LICHBANESlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3040), GetInventorySlotItem(3057), GetInventorySlotItem(3078), GetInventorySlotItem(3100)
+	DFGReady = (DFGSlot ~= nil and myHero:CanUseSpell(DFGSlot) == READY)
+	HXGReady = (HXGSlot ~= nil and myHero:CanUseSpell(HXGSlot) == READY)
+	SEReady = (SESlot ~= nil and myHero:CanUseSpell(SESlot) == READY)
+	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY)
+end
+
+function DMGCalculation() -- our whole damage calculation
+	for i=1, heroManager.iCount do
+        local Unit = heroManager:GetHero(i)
+        if ValidTarget(Unit) then
+        	local DFGDamage, HXGDamage, LIANDRYSDamage, IGNITEDamage, SHEENDamage, TRINITYDamage, LICHBANEDamage = 0, 0, 0, 0, 0, 0, 0
+        	local QDamage = getDmg("Q",Unit,myHero)
+			local WDamage = getDmg("W",Unit,myHero)
+			local EDamage = getDmg("E",Unit,myHero)
+			local HITDamage = getDmg("AD",Unit,myHero)
+			local ONHITDamage = (SHEENSlot and getDmg("SHEEN",Unit,myHero) or 0)+(TRINITYSlot and getDmg("TRINITY",Unit,myHero) or 0)+(LICHBANESlot and getDmg("LICHBANE",Unit,myHero) or 0)
+			local ONSPELLDamage = (LIANDRYSSlot and getDmg("LIANDRYS",Unit,myHero) or 0)+(BLACKFIRESlot and getDmg("BLACKFIRE",Unit,myHero) or 0)
+			local IGNITEDamage = (IGNITESlot and getDmg("IGNITE",Unit,myHero) or 0)
+			local DFGDamage = (DFGSlot and getDmg("DFG",Unit,myHero) or 0)
+			local HXGDamage = (HXGSlot and getDmg("HXG",Unit,myHero) or 0)
+			local LIANDRYSDamage = (LIANDRYSSlot and getDmg("LIANDRYS",Unit,myHero) or 0)
+			local combo1 = HITDamage + ONHITDamage + ONSPELLDamage
+			local combo2 = HITDamage + ONHITDamage + ONSPELLDamage
+			local combo3 = HITDamage + ONHITDamage + ONSPELLDamage
+			local mana = 0
+
+			if QSpell:Ready() then
+				combo1 = combo1 + QDamage
+				combo2 = combo2 + QDamage
+				combo3 = combo3 + QDamage
+				mana = mana + QSpell.spellData.mana
+			end
+
+			if WSpell:Ready() then
+				combo1 = combo1 + WDamage
+				combo2 = combo2 + WDamage
+				combo3 = combo3 + WDamage
+				mana = mana + WSpell.spellData.mana
+			end
+
+			if ESpell:Ready() then
+				combo1 = combo1 + EDamage
+				combo2 = combo2 + EDamage
+				combo3 = combo3 + EDamage
+				mana = mana + ESpell.spellData.mana
+			end
+
+			if DFGReady then
+				combo2 = combo2 + DFGDamage
+				combo3 = combo3 + DFGDamage
+			end
+
+			if HXGReady then
+				combo2 = combo2 + HXGDamage
+				combo3 = combo3 + HXGDamage
+			end
+
+			if IGNITEReady then
+				combo3 = combo3 + IGNITEDamage
+			end
+
+			killable[i] = 1 -- the default value = harass
+
+			if (combo3 >= Unit.health) and (myHero.mana >= mana) then -- all cooldowns needed
+				killable[i] = 2
+			end
+
+			if (combo2 >= Unit.health) and (myHero.mana >= mana) then -- only spells and items needed
+				killable[i] = 3
+			end
+
+			if (combo1 >= Unit.health) and (myHero.mana >= mana) then -- only spells needed
+				killable[i] = 4
+			end
+	end
+end
 end
