@@ -238,7 +238,7 @@ function CageNearestEnemy() -- Credits to NerdyRyze for the base
 	if myHero:GetDistance(NearestEnemy) <= WSpell.range then WSpell:Cast(NearestEnemy) end -- Cage him
 end
 
-function ClearJungle()
+function ClearJungle() -- Credits to GloryRyze for the obj list
 	for i = 1, objManager.maxObjects do
 		local obj = objManager:getObject(i)
 		if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
