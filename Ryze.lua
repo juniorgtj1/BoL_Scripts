@@ -60,7 +60,7 @@ function OnLoad() -- this things happens once the script loads
 	Config:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	Config:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	Config:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
-	Config:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, true) -- Draw Circles
+	Config:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
 
 	-- perma show HK1-5
 	Config:permaShow("fCombo")
