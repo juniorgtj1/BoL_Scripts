@@ -1,3 +1,4 @@
+
 --[[ Simple script that casts E at the nearest enemy if you press Q on Soraka ]]--
 
 --[[ Variables ]]--
@@ -15,16 +16,16 @@ end
 
 -- Casts E on the nearest enemy champ
 function CastE()
-	for i=1, heroManager.iCount do -- loop through the enemys
-		local Enemy = heroManager:GetHero(i)
+    for i=1, heroManager.iCount do -- loop through the enemys
+        local Enemy = heroManager:GetHero(i)
         if ValidTarget(NearestEnemy) and ValidTarget(Enemy) then
-        	if GetDistance(Enemy) < GetDistance(NearestEnemy) then
-            	NearestEnemy = Enemy -- and find the nearest champ
+            if GetDistance(Enemy) < GetDistance(NearestEnemy) then
+                NearestEnemy = Enemy -- and find the nearest champ
             end
-    	else
+        else
             NearestEnemy = Enemy
-    	end
-	end
+        end
+    end
 
-	if myHero:GetDistance(NearestEnemy) <= 725 then CastSpell(_E, NearestEnemy) end -- finally cast our spell
+    if myHero:GetDistance(NearestEnemy) <= 725 then CastSpell(_E, NearestEnemy) end -- finally cast our spell
 end
