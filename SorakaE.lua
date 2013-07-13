@@ -1,22 +1,18 @@
---[[ Simple script that casts E at the nearest enemy if you press Q on Soraka ]]--
+--[[ Simple script that casts E at the nearest enemy if you press Q on Soraka; Thanks to Sida ]]--
 
-local NearestEnemy = nil
-
-function OnWndMsg(msg, wParam) -- Captures the pressed keys
-    if msg == KEY_DOWN and wParam == 0x51 then CastE() end -- 0x51 = Q
+local qAt = 0
+function OnProcessSpell(unit, spell)
+   if unit.isMe and spell.name == myHero:GetSpellData(_Q).name then
+      qAt = GetTickCount()
+   end
 end
-
-function CastE()
-    for i=1, heroManager.iCount do -- first we get the nearest champ
-        local Enemy = heroManager:GetHero(i)
-        if ValidTarget(NearestEnemy) and ValidTarget(Enemy) then
-            if GetDistance(Enemy) < GetDistance(NearestEnemy) then
-                NearestEnemy = Enemy
-            end
-        else
-            NearestEnemy = Enemy
-        end
-    end
-
-    if myHero:GetDistance(NearestEnemy) <= 725 and wait == 1 then CastSpell(_E, NearestEnemy) end
+ 
+function OnTick()
+   if GetTickCount() > qAt + 900 and GetTickCount() < qAt + 1500 then
+      for _, enemy in pairs(GetEnemyHeroes()) do
+         if ValidTarget(enemy, 725) then
+            CastSpell(_E, enemy)
+         end
+      end
+   end
 end
