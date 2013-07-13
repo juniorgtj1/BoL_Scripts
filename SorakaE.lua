@@ -4,7 +4,6 @@
 local NearestEnemy = nil -- our nearest champ
 
 --[[ Core ]]--
-
 function OnLoad()
     print(">>Soraka auto E loaded<<") -- say hello
 end
