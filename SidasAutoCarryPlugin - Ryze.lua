@@ -148,20 +148,20 @@ function FullCombo()
     end
 
     if cdr <= 20 then
-    	if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
-    	if ValidTarget(target, SpellRangeW) then CastSpell(_W, target) end
-    	if ValidTarget(target, SpellRangeE) then CastSpell(_E, target) end
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+    	if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
     	UseUlti(target)
     elseif cdr > 20 and cdr < 30 then
-    	if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
-    	if ValidTarget(target, SpellRangeE) then CastSpell(_E, target) end
-    	if ValidTarget(target, SpellRangeW) then CastSpell(_W, target) end
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
+    	if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
     	UseUlti(target)
     else
-    	if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
     	UseUlti(target)
-		if ValidTarget(target, SpellRangeW) then CastSpell(_W, target) end
-		if ValidTarget(target, SpellRangeE) then CastSpell(_E, target) end
+		if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+		if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
 	end
 end
 
@@ -323,7 +323,7 @@ end
 function UseUlti(Unit)
 	local calcenemy = 1
 
-	if ValidTarget(Unit) and AutoCarry.PluginMenu.aUlti then
+	if ValidTarget(Unit) and AutoCarry.PluginMenu.aUlti and RREADY then
 		for i=1, heroManager.iCount do
     		local Enemy = heroManager:GetHero(i)
     		if Enemy.charName == Unit.charName then
