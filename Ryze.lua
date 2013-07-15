@@ -92,13 +92,6 @@ function OnLoad() -- this things happens once the script loads
 		autoLevelSetFunction(onChoiceFunction) -- add the callback to choose the first skill
 	end
 
-	--[[  Item class somehow buggy, need a apple fix
-	items:add("DFG", 3128) -- Deathfire Grasp
-	items:add("HXG", 3146) -- Hextech Gunblade
-	items:add("SE", 3040) -- Seraph's Embrace
-	items:add("LIANDRYS", 3151) -- Liandry's Torment
-	]]--
-
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
 	
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
