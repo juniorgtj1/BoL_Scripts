@@ -1,4 +1,3 @@
-This is my little BoL Script Repo.
 SidasAutoCarryPlugin - Ryze.lua
 -------------------------------
 An addition to Sidas Auto Carry. Put it in *BoL/Scripts/Common*. It loads automatically in Auto Carry.
