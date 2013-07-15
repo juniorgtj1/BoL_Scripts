@@ -31,7 +31,6 @@ local Summoners = iSummoners() -- initialize the summoner spells
 local items = iTems() -- iSAC item class
 local Minions = iMinions(QSpell.range) -- initialize the minion class
 local enemyMinions = minionManager(MINION_ENEMY, QSpell.range, player, MINION_SORT_HEALTH_ASC) -- second minion manager, because the iSAC minions are strange; q range
---local items = iTems() -- initialize item class
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local AARange = myHero.range + GetDistance(myHero.minBBox) -- auto attack range
 local NearestEnemy = nil -- nearest champ
@@ -39,8 +38,11 @@ local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text ass
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
 local IGNITEReady = false -- ignite cooldown
-local calcenemy = 1
-
+local calcenemy = 1 -- the enemy used to detect the fullcombo enemy
+local TurretRange = 950 -- the range of the turrets
+local Turrets = {} -- we create a array for the turrets
+local CageTurret = nil -- the current turret
+local InTurretRange = false -- if it's in turret range
 
 -- [[ Core ]] --
 function OnLoad() -- this things happens once the script loads
@@ -106,6 +108,8 @@ function OnLoad() -- this things happens once the script loads
 	
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
+	TurretCage(true, false) -- initialize the turret objects
+
 	print(">>PQRyze - Yet another Ryze script loaded<<") -- say hello
 end
 
@@ -120,6 +124,13 @@ function OnTick() -- this things happen with every tick of the script
 	items:update() -- get the newest item states
 	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY) -- ignite ready?
 	DMGCalculation() -- mark killable champs
+	TurretCage(false, true) -- update the tower objects
+	CageTurret = TurretCage(false, false)
+	if myHero:GetDistance(CageTurret.object) <= 1250 and CageTurret.team == player.team then
+		InTurretRange = true
+	else
+		InTurretRange = false
+	end
 
 	if items:Have(3040) and (myHero.health / myHero.maxHealth <= 0.3) then items:Use(3040) end -- use seraphs embrace
 
@@ -194,6 +205,20 @@ end
 
 function OnProcessSpell(unit, spell) -- is fired if a spell is used
 	Orbwalker:OnProcessSpell(unit, spell) -- helps with the auto attacks
+	if InTurretRange then
+		if unit.team == TEAM_ENEMY and GetDistance(unit) < wRange and GetDistance(spell.endPos, myHero)<10 then
+			for i=1, heroManager.iCount do
+				local enemy = heroManager:GetHero(i)
+				if ValidTarget(enemy) then
+					if enemy.name == unit.name then
+						if GetDistance(enemy) <= WSpell.range and WSpell:Ready() then
+							if enemy:GetDistance(CageTurret.object) < 800 then WSpell:Cast(enemy) end
+						end
+					end
+				end
+			end
+		end
+	end
 end
 
 function OnSendPacket(packet) -- VIP only, is fired if a packed is send
@@ -295,6 +320,55 @@ function CageNearestEnemy() -- Credits to NerdyRyze for the base
 	end
 
 	if myHero:GetDistance(NearestEnemy) <= WSpell.range then WSpell:Cast(NearestEnemy) end -- Cage him
+end
+
+function TurretCage(initialize, check) -- Cages enemys at your turret
+	if initialize then
+		for i = 1, objManager.maxObjects do
+		local obj = objManager:getObject(i)
+			if obj ~= nil and obj.type == "obj_AI_Turret" then
+				local TurretName = obj.name
+				Turrets[TurretName] = 
+				{
+					object = obj,
+					team = obj.team,
+					range = TurretRange,
+					x = obj.x,
+					y = obj.y,
+					z = obj.z,
+					active = false,
+				}
+			end
+		end
+	return
+	end
+
+	if check then
+		for name, turret in pairs(Turrets) do
+			if turret.object.valid == false then
+				Turrets[name] = nil
+			end
+		end
+		return
+	end
+
+	local ClosetTurret = nil
+	local CurrentTurret = nil
+
+	for name, turret in pairs(Turrets) do
+		if turret.object.valid ~= false then
+			CurrentTurret = turret
+		end
+
+		if turret.team == maHero.team then
+			if ClosetTurret == nil then
+				ClosetTurret = CurrentTurret
+			elseif GetDistance(CurrentTurret) < GetDistance(ClosetTurret) then
+				ClosetTurret = CurrentTurret
+			end
+		end
+	end
+	return ClosetTurret
 end
 
 function ClearJungle() -- Credits to GloryRyze for the obj list
