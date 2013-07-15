@@ -126,11 +126,11 @@ function KS() -- get the kills
 end
 
 function FullCombo()
-	if not ValidTarget(target) then return end
-
 	local cdr = math.abs(myHero.cdr*100) -- our cooldown reduction
 	local target = AutoCarry.GetAttackTarget()
 	local calcenemy = 1
+
+	if not ValidTarget(target) then return true end
 
 	for i=1, heroManager.iCount do
     	local Unit = heroManager:GetHero(i)
