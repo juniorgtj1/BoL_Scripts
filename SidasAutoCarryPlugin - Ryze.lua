@@ -31,7 +31,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("orbWalk", "Orb Walking", SCRIPT_PARAM_ONOFF, true) -- orb walking while farming/combo
 	AutoCarry.PluginMenu:addParam("aUlti", "Use Ulti in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if ulti should be used in full combo
 	AutoCarry.PluginMenu:addParam("aItems", "Use Items in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if items should be used in full combo
-	AutoCarry.PluginMenu:addParam("aSP", "Use Summoner Spells", SCRIPT_PARAM_ONOFF, true) -- decide if summoner spells should be used automatic
+	AutoCarry.PluginMenu:addParam("aIGN", "Auto Ignite", SCRIPT_PARAM_ONOFF, true) -- decide if summoner spells should be used automatic
 	AutoCarry.PluginMenu:addParam("hwQ", "Harass with Q", SCRIPT_PARAM_ONOFF, true) -- Harass with Q
 	AutoCarry.PluginMenu:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
 	AutoCarry.PluginMenu:addParam("hwW", "Harass with W", SCRIPT_PARAM_ONOFF, false) -- Harass with W
@@ -139,11 +139,11 @@ function FullCombo()
     	end
    	end
 
-    if ((killable[calcenemy] == 2) or (killable[calcenemy] == 3)) and DFGReady then
+    if (killable[calcenemy] == 2 or killable[calcenemy] == 3) and DFGReady then
     	CastSpell(DFGSlot, target)
     end
 
-    if killable[calcenemy] == 2 then
+    if killable[calcenemy] == 2 and AutoCarry.PluginMenu.aIGN then
     	CastSpell(IGNITESlot, target)
     end
 
