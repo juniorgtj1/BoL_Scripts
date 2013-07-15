@@ -5,7 +5,7 @@
 local HK1 = 32 -- Full Combo
 local HK2 = string.byte("Y") -- Harass
 local HK3 = string.byte("W") -- cage nearest enemy
-local HK4 = string.byte("V") -- jungle clearing
+local HK4 = string.byte("N") -- jungle clearing
 
 --[[ Variables ]]--
 local SpellRangeQ = 650 -- q range
