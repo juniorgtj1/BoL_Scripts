@@ -190,28 +190,38 @@ function CageNearestEnemy()
 end
 
 function ClearJungle()
-		for i = 1, objManager.maxObjects do
-		local obj = objManager:getObject(i)
-		if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
-			if obj.name == "TT_Spiderboss7.1.1"
-			or obj.name == "Worm12.1.1"
-			or obj.name == "AncientGolem1.1.1"
-			or obj.name == "AncientGolem7.1.1"
-			or obj.name == "LizardElder4.1.1"
-			or obj.name == "LizardElder10.1.1"
-			or obj.name == "GiantWolf2.1.3"
-			or obj.name == "GiantWolf8.1.3"
-			or obj.name == "Wraith3.1.3"
-			or obj.name == "Wraith9.1.3"
-			or obj.name == "Golem5.1.2"
-			or obj.name == "Golem11.1.2" then
-				if ValidTarget(obj) then
-					if myHero:GetDistance(obj) <= SpellRangeQ then CastSpell(_Q, obj) end
-					if myHero:GetDistance(obj) <= SpellRangeW then CastSpell(_W, obj) end
-					if myHero:GetDistance(obj) <= SpellRangeE then CastSpell(_E, obj) end
-				end
+	local Priority = nil
+	local Target = nil
+	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
+		if ValidTarget(mob) then
+ 			if mob.name == "TT_Spiderboss7.1.1"
+			or mob.name == "Worm12.1.1"
+			or mob.name == "AncientGolem1.1.1"
+			or mob.name == "AncientGolem7.1.1"
+			or mob.name == "LizardElder4.1.1"
+			or mob.name == "LizardElder10.1.1"
+			or mob.name == "GiantWolf2.1.3"
+			or mob.name == "GiantWolf8.1.3"
+			or mob.name == "Wraith3.1.3"
+			or mob.name == "Wraith9.1.3"
+			or mob.name == "Golem5.1.2"
+			or mob.name == "Golem11.1.2"
+			then
+				Priority = mob
+			else
+				Target = mob
 			end
 		end
+	end
+
+	if Priority then
+		Target = Priority
+	end
+
+	if ValidTarget(Target) then
+		if myHero:GetDistance(Target) <= SpellRangeQ then CastSpell(_Q, Target) end
+		if myHero:GetDistance(Target) <= SpellRangeW then CastSpell(_W, Target) end
+		if myHero:GetDistance(Target) <= SpellRangeE then CastSpell(_E, Target) end
 	end
 end
 
