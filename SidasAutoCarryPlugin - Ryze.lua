@@ -28,7 +28,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYDOWN, false, HK4) -- jungle clearing
 
 	-- Settings
-	AutoCarry.PluginMenu:addParam("orbWalk", "Orb Walking", SCRIPT_PARAM_ONOFF, true) -- orb walking while farming/combo
+	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
 	AutoCarry.PluginMenu:addParam("aUlti", "Use Ulti in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if ulti should be used in full combo
 	AutoCarry.PluginMenu:addParam("aItems", "Use Items in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if items should be used in full combo
 	AutoCarry.PluginMenu:addParam("aIGN", "Auto Ignite", SCRIPT_PARAM_ONOFF, true) -- decide if summoner spells should be used automatic
@@ -70,6 +70,7 @@ function PluginOnTick()
 		if AutoCarry.MainMenu.AutoCarry then FullCombo() end -- run full combo
 		if AutoCarry.PluginMenu.harass then Harass() end -- harass
 		if AutoCarry.PluginMenu.cage then CageNearestEnemy() end -- cage the nearest enemy
+		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then ClearLane() end -- spamming q/w/e on the minions while lane clearing
 		if AutoCarry.PluginMenu.jungle then ClearJungle() end -- kill jungle mobs with abilities
 		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage or AutoCarry.PluginMenu.jungle) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
 	end
@@ -226,6 +227,17 @@ function ClearJungle()
 		if myHero:GetDistance(Target) <= SpellRangeQ then CastSpell(_Q, Target) end
 		if myHero:GetDistance(Target) <= SpellRangeW then CastSpell(_W, Target) end
 		if myHero:GetDistance(Target) <= SpellRangeE then CastSpell(_E, Target) end
+	end
+end
+
+function ClearLane()
+	enemyMinions:update() -- get the newest minions
+	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
+		if ValidTarget(minion) then
+			if EREADY and (GetDistance(minion) <= SpellRangeE) then CastSpell(_E, minion) end
+			if QREADY and (GetDistance(minion) <= SpellRangeQ) then CastSpell(_Q, minion) end
+			if WREADY and (GetDistance(minion) <= SpellRangeW) then CastSpell(_W, minion) end
+		end
 	end
 end
 
