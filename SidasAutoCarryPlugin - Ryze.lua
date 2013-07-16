@@ -117,12 +117,11 @@ function PluginOnDraw()
 end
 
 function KS() -- get the kills
-	local target = AutoCarry.GetAttackTarget()
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
-		if ValidTarget(killableEnemy,SpellRangeQ) and QREADY and (getDmg("Q", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_Q, target) end
-		if ValidTarget(killableEnemy, SpellRangeE) and EREADY and (getDmg("E", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_E, target) end
-		if ValidTarget(killableEnemy, SpellRangeW) and WREADY and (getDmg("W", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_W, target) end
+		if ValidTarget(killableEnemy,SpellRangeQ) and QREADY and (getDmg("Q", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_Q, killableEnemy) end
+		if ValidTarget(killableEnemy, SpellRangeE) and EREADY and (getDmg("E", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_E, killableEnemy) end
+		if ValidTarget(killableEnemy, SpellRangeW) and WREADY and (getDmg("W", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_W, killableEnemy) end
 	end
 end
 
