@@ -143,7 +143,11 @@ function FullCombo()
     	CastSpell(DFGSlot, target)
     end
 
-    if killable[calcenemy] == 2 and AutoCarry.PluginMenu.aIGN then
+    if (killable[calcenemy] == 2 or killable[calcenemy] == 3) and HXGReady then
+    	CastSpell(HXGSlot, target)
+    end
+
+    if killable[calcenemy] == 2 and AutoCarry.PluginMenu.aIGN and IGNITEReady then
     	CastSpell(IGNITESlot, target)
     end
 
