@@ -176,14 +176,17 @@ function FullCombo()
     if Sequence[ComboStep] == NextSpell then
     	if NextSpell == "Q" then
     		if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
+    		NextSpell = nil
     	elseif NextSpell == "W" then
     		if ValidTarget(target, SpellRangeW) then CastSpell(_W, target) end
+    		NextSpell = nil
     	elseif NextSpell == "E" then
     		if ValidTarget(target, SpellRangeE) then CastSpell(_E, target) end
+    		NextSpell = nil
     	elseif NextSpell == "R" then
     		if ValidTarget(target) then CastSpell(_R) end
+    		NextSpell = nil
     	end
-    	NextSpell = nil
     elseif Sequence[ComboStep] == "Q" then
     	if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
     elseif Sequence[ComboStep] == "W" then
