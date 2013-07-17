@@ -31,7 +31,7 @@ function CastR()
 	if not RReady then return true end
 
 	for _, enemy in pairs(AutoCarry.EnemyTable) do
-		if ValidTarget(enemy, SpellRangeR) and GetDmg(_R, enemy, myHero) >= enemy.health then CastSpell(_R, enemy) end
+		if ValidTarget(enemy, SpellRangeR) and getDmg("R", enemy, myHero) >= enemy.health then CastSpell(_R, enemy) end
 	end
 end
 
