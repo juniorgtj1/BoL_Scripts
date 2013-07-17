@@ -15,8 +15,8 @@ end
 
 function PluginOnTick()
 	CooldownHandler()
-	if AutoCarry.PluginMenu.aUlt then CastR() end
 	if AutoCarry.PluginMenu.aB then AutoBarrier() end
+	if AutoCarry.PluginMenu.aUlt then CastR() end
 	if AutoCarry.PluginMenu.aIGN then AutoIgnite() end
 end
 
