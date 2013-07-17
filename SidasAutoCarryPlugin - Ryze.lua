@@ -41,7 +41,6 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
 
 	-- Visual
-	--AutoCarry.PluginMenu:addParam("mMarker", "Minion Marker", SCRIPT_PARAM_ONOFF, true) -- marking killable minions
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
 
 	-- perma show HK1-4
