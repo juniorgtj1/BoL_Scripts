@@ -131,7 +131,6 @@ function FullCombo()
 	local cdr = math.abs(myHero.cdr*100) -- our cooldown reduction
 	local target = AutoCarry.GetAttackTarget()
 	local calcenemy = 1
-	local LastSpell = nil
 
 	if not ValidTarget(target) then return true end
 
