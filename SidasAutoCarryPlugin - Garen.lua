@@ -42,11 +42,9 @@ end
 function AutoIgnite()
 	if not IGNITEReady then return true end
 
-	local IGNITEDamage = 0
 	for _, enemy in pairs(AutoCarry.EnemyTable) do
 		if ValidTarget(enemy, 600) then
-			IGNITEDamage = 50 + 20 * myHero.level
-			if IGNITEDamage >= enemy.health then
+			if getDmg("IGNITE",enemy,myHero) >= enemy.health then
 				CastSpell(IGNITESlot, enemy)
 			end
 		end
