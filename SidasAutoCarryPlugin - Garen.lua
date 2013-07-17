@@ -1,10 +1,11 @@
 --[[ Simple Garen Plugin ]]--
 
 local SpellRangeR = 400
-local RReady, IGNITEReady, BARRIERReady = nil, nil, nil
+local RReady, EReady, IGNITEReady, BARRIERReady = nil, nil, nil, nil
 
 function PluginOnLoad()
-	AutoCarry.PluginMenu:addParam("aUlt", "Use Ulti", SCRIPT_PARAM_ONOFF, true)
+	AutoCarry.PluginMenu:addParam("aR", "Use Ulti", SCRIPT_PARAM_ONOFF, true)
+	AutoCarry.PluginMenu:addParam("aE", "Use E after Q", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("aIGN", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("aB", "Use Barrier", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("lr", "Barrier Life Ratio", SCRIPT_PARAM_SLICE, 0.15, 0, 1, 2)
@@ -16,8 +17,14 @@ end
 function PluginOnTick()
 	CooldownHandler()
 	if AutoCarry.PluginMenu.aB then AutoBarrier() end
-	if AutoCarry.PluginMenu.aUlt then CastR() end
+	if AutoCarry.PluginMenu.aR then CastR() end
 	if AutoCarry.PluginMenu.aIGN then AutoIgnite() end
+end
+
+function OnProcessSpell(unit, spell)
+   if unit.isMe and spell.name == myHero:GetSpellData(_Q).name then
+      if AutoCarry.PluginMenu.aE and EReady then CastSpell(_E) end
+   end
 end
 
 function CastR()
@@ -47,7 +54,8 @@ function AutoIgnite()
 end
 
 function CooldownHandler()
-	RREADY = (myHero:CanUseSpell(_R) == READY)
+	RReady = (myHero:CanUseSpell(_R) == READY)
+	EReady = (myHero:CanUseSpell(_E) == READY)
 	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY)
 	BARRIERReady = (BARRIERSlot ~= nil and myHero:CanUseSpell(BARRIERSlot) == READY)
 end
