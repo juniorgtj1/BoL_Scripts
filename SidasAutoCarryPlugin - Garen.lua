@@ -21,7 +21,7 @@ function PluginOnTick()
 	if AutoCarry.PluginMenu.aIGN then AutoIgnite() end
 end
 
-function OnProcessSpell(unit, spell)
+function PluginOnProcessSpell(unit, spell)
    if unit.isMe and spell.name == myHero:GetSpellData(_Q).name then
       if AutoCarry.PluginMenu.aE and EReady then CastSpell(_E) end
    end
