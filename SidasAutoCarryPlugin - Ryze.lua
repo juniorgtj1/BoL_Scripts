@@ -187,18 +187,31 @@ function FullCombo()
     		if ValidTarget(target) then CastSpell(_R) end
     		NextSpell = nil
     	end
+   		return
     elseif Sequence[ComboStep] == "Q" then
-    	if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeQ) then
+    		CastSpell(_Q, target)
+    		 ComboStep = ComboStep + 1
+    	end
     elseif Sequence[ComboStep] == "W" then
-    	if ValidTarget(target, SpellRangeW) then CastSpell(_W, target) end
+    	if ValidTarget(target, SpellRangeW) then
+    		CastSpell(_W, target)
+    		ComboStep = ComboStep + 1
+    	end
     elseif Sequence[ComboStep] == "E" then
-    	if ValidTarget(target, SpellRangeE) then CastSpell(_E, target) end
+    	if ValidTarget(target, SpellRangeE) then
+    		CastSpell(_E, target)
+    		ComboStep = ComboStep + 1
+    	end
     elseif Sequence[ComboStep] == "R" then
-    	if ValidTarget(target) then CastSpell(_R) end
+    	if ValidTarget(target) then
+    		CastSpell(_R)
+    		ComboStep = ComboStep + 1
+    	end
     elseif Sequence[ComboStep] == "WAIT" then
     	NextSpell = Sequence[ComboStep+1]
+    	 ComboStep = ComboStep + 1
     end
-    ComboStep = ComboStep + 1
 end
 
 function Harass()
