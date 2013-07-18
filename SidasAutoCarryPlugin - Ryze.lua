@@ -25,7 +25,7 @@ local enemyMinions = minionManager(MINION_ENEMY, SpellRangeQ, player, MINION_SOR
 function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- harass
 	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK3) -- cage
-	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYDOWN, false, HK4) -- jungle clearing
+	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK4) -- jungle clearing
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
@@ -39,6 +39,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	AutoCarry.PluginMenu:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
+	AutoCarry.PluginMenu:addParam("aTC", "Auto Tower Cage", SCRIPT_PARAM_ONOFF, true) -- Auto Tower Cage
 
 	-- Visual
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
@@ -57,8 +58,7 @@ function PluginOnLoad()
 	
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
-	ComboStep = 1
-	NextSpell = nil
+	AutoCarry.SkillsCrosshair.range = SpellRangeE
 end
 
 function PluginOnTick()
@@ -72,8 +72,9 @@ function PluginOnTick()
 		if AutoCarry.MainMenu.AutoCarry then FullCombo() end -- run full combo
 		if AutoCarry.PluginMenu.harass then Harass() end -- harass
 		if AutoCarry.PluginMenu.cage then CageNearestEnemy() end -- cage the nearest enemy
-		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then ClearLane() end -- spamming q/w/e on the minions while lane clearing
-		if AutoCarry.PluginMenu.jungle then ClearJungle() end -- kill jungle mobs with abilities
+		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then LaneClear() end -- spamming q/w/e on the minions while lane clearing
+		if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.jungle then JungleSteal() end -- last hit the jungle mobs
+		if AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.jungle then JungleClear() end -- kill jungle mobs with abilities
 		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage or AutoCarry.PluginMenu.jungle) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
 	end
 end
@@ -118,6 +119,17 @@ function PluginOnDraw()
 	end
 end
 
+function PluginOnProcessSpell(unit, spell)
+	if (spell.name:find("ChaosTurret") and myHero.team == TEAM_RED) or (spell.name:find("OrderTurret") and myHero.team == TEAM_BLUE) and AutoCarry.PluginMenu.aTC then
+		for i=1, heroManager.iCount do
+			local Unit = heroManager:GetHero(i)
+			if ValidTarget(Unit, SpellRangeW) and WREADY then
+				if GetDistance(spell.endPos, enemy) < 80 then CastSpell(_W, Unit) end
+			end
+		end
+	end
+end
+
 function KS() -- get the kills
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
@@ -129,7 +141,7 @@ end
 
 function FullCombo()
 	local cdr = math.abs(myHero.cdr*100) -- our cooldown reduction
-	local target = AutoCarry.GetAttackTarget()
+	local target = AutoCarry.GetAttackTarget(true)
 	local calcenemy = 1
 
 	if not ValidTarget(target) then return true end
@@ -140,26 +152,6 @@ function FullCombo()
     		calcenemy = i
     	end
    	end
-
-   	local Sequence = {}
-   	if cdr < 40 then
-   		if RREADY then
-   			Sequence = {"Q", "R", "E", "W", "Q"}
-   		else
-   			Sequence = {"Q", "E", "W", "Q"}
-   		end
-   	else
-   		if RREADY then
-   			Sequence = {"Q", "R", "WAIT", "Q", "W", "WAIT", "Q", "E", "WAIT", "Q"}
-   		else
-   			Sequence = {"Q", "W", "E", "Q"}
-   		end
-   	end
-
-    Length = table.getn(Sequence)
-    if (Length == Sequence[ComboStep]) or (QREADY and WREADY and EREADY) then
-    	ComboStep = 1
-    end
 
     if (killable[calcenemy] == 2 or killable[calcenemy] == 3) and DFGReady then
     	CastSpell(DFGSlot, target)
@@ -173,54 +165,32 @@ function FullCombo()
     	CastSpell(IGNITESlot, target)
     end
 
-    if Sequence[ComboStep] == NextSpell then
-    	if NextSpell == "Q" then
-    		if ValidTarget(target, SpellRangeQ) then CastSpell(_Q, target) end
-    		NextSpell = nil
-    	elseif NextSpell == "W" then
-    		if ValidTarget(target, SpellRangeW) then CastSpell(_W, target) end
-    		NextSpell = nil
-    	elseif NextSpell == "E" then
-    		if ValidTarget(target, SpellRangeE) then CastSpell(_E, target) end
-    		NextSpell = nil
-    	elseif NextSpell == "R" then
-    		if ValidTarget(target) then CastSpell(_R) end
-    		NextSpell = nil
-    	end
-   		return
-    elseif Sequence[ComboStep] == "Q" then
-    	if ValidTarget(target, SpellRangeQ) then
-    		CastSpell(_Q, target)
-    		 ComboStep = ComboStep + 1
-    	end
-    elseif Sequence[ComboStep] == "W" then
-    	if ValidTarget(target, SpellRangeW) then
-    		CastSpell(_W, target)
-    		ComboStep = ComboStep + 1
-    	end
-    elseif Sequence[ComboStep] == "E" then
-    	if ValidTarget(target, SpellRangeE) then
-    		CastSpell(_E, target)
-    		ComboStep = ComboStep + 1
-    	end
-    elseif Sequence[ComboStep] == "R" then
-    	if ValidTarget(target) then
-    		CastSpell(_R)
-    		ComboStep = ComboStep + 1
-    	end
-    elseif Sequence[ComboStep] == "WAIT" then
-    	NextSpell = Sequence[ComboStep+1]
-    	 ComboStep = ComboStep + 1
-    end
+    if cdr <= 20 then
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+    	if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
+    	UseUlti(target)
+    elseif cdr > 20 and cdr < 30 then
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
+    	if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+    	UseUlti(target)
+    else
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	UseUlti(target)
+		if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+		if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
+	end
 end
 
 function Harass()
-	local target = AutoCarry.GetAttackTarget()
+	local target = AutoCarry.GetAttackTarget(true)
 	if ValidTarget(target) then
 		if AutoCarry.PluginMenu.hwQ and QREADY and (GetDistance(target) <= SpellRangeQ) then CastSpell(_Q, target) end
 		if AutoCarry.PluginMenu.hwW and WREADY and (GetDistance(target) <= SpellRangeW) then CastSpell(_W, target) end
 		if AutoCarry.PluginMenu.hwE and EREADY and (GetDistance(target) <= SpellRangeE) then CastSpell(_E, target) end
 	end
+	myHero:MoveTo(mousePos.x, mousePos.z)
 end
 
 function CageNearestEnemy()
@@ -238,7 +208,7 @@ function CageNearestEnemy()
 	if myHero:GetDistance(NearestEnemy) <= SpellRangeW then CastSpell(_W, NearestEnemy) end -- Cage him
 end
 
-function ClearJungle()
+function JungleClear()
 	local Priority = nil
 	local Target = nil
 	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
@@ -274,7 +244,15 @@ function ClearJungle()
 	end
 end
 
-function ClearLane()
+function JungleSteal()
+	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
+		if ValidTarget(mob,SpellRangeQ) and QREADY and (getDmg("Q", mob, myHero) >= mob.health) then CastSpell(_Q, mob) end
+		if ValidTarget(mob, SpellRangeE) and EREADY and (getDmg("E", mob, myHero) >= mob.health) then CastSpell(_E, mob) end
+		if ValidTarget(mob, SpellRangeW) and WREADY and (getDmg("W", mob, myHero) >= mob.health) then CastSpell(_W, mob) end
+	end
+end
+
+function LaneClear()
 	enemyMinions:update() -- get the newest minions
 	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
 		if ValidTarget(minion) then
@@ -394,9 +372,6 @@ function UseUlti(Unit)
     	local EnemysInRange = CountEnemyHeroInRange()
 		if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5) or killable[calcenemy] == 2 or killable[calcenemy] == 3
 			then CastSpell(_R)
-			return true
-		else
-			return false
 		end
     end
 end
