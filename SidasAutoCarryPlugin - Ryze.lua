@@ -25,7 +25,7 @@ local enemyMinions = minionManager(MINION_ENEMY, SpellRangeQ, player, MINION_SOR
 function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- harass
 	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK3) -- cage
-	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYDOWN, false, HK4) -- jungle clearing
+	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK4) -- jungle clearing
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
@@ -69,8 +69,9 @@ function PluginOnTick()
 		if AutoCarry.MainMenu.AutoCarry then FullCombo() end -- run full combo
 		if AutoCarry.PluginMenu.harass then Harass() end -- harass
 		if AutoCarry.PluginMenu.cage then CageNearestEnemy() end -- cage the nearest enemy
-		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then ClearLane() end -- spamming q/w/e on the minions while lane clearing
-		if AutoCarry.PluginMenu.jungle then ClearJungle() end -- kill jungle mobs with abilities
+		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then LaneClear() end -- spamming q/w/e on the minions while lane clearing
+		if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.jungle then JungleSteal() end -- last hit the jungle mobs
+		if AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.jungle then JungleClear() end -- kill jungle mobs with abilities
 		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage or AutoCarry.PluginMenu.jungle) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
 	end
 end
@@ -192,7 +193,7 @@ function CageNearestEnemy()
 	if myHero:GetDistance(NearestEnemy) <= SpellRangeW then CastSpell(_W, NearestEnemy) end -- Cage him
 end
 
-function ClearJungle()
+function JungleClear()
 	local Priority = nil
 	local Target = nil
 	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
@@ -228,7 +229,15 @@ function ClearJungle()
 	end
 end
 
-function ClearLane()
+function JungleSteal()
+	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
+		if ValidTarget(mob,SpellRangeQ) and QREADY and (getDmg("Q", mob, myHero) >= mob.health) then CastSpell(_Q, mob) end
+		if ValidTarget(mob, SpellRangeE) and EREADY and (getDmg("E", mob, myHero) >= mob.health) then CastSpell(_E, mob) end
+		if ValidTarget(mob, SpellRangeW) and WREADY and (getDmg("W", mob, myHero) >= mob.health) then CastSpell(_W, mob) end
+	end
+end
+
+function LaneClear()
 	enemyMinions:update() -- get the newest minions
 	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
 		if ValidTarget(minion) then
