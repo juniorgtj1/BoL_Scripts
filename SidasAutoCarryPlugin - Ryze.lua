@@ -198,6 +198,7 @@ function FullCombo()
     elseif Sequence[ComboStep] == "WAIT" then
     	NextSpell = Sequence[ComboStep+1]
     end
+    ComboStep = ComboStep + 1
 end
 
 function Harass()
