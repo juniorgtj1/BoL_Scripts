@@ -56,6 +56,8 @@ function PluginOnLoad()
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
 	
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
+
+	AutoCarry.SkillsCrosshair.range = SpellRangeE
 end
 
 function PluginOnTick()
