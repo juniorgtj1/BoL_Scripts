@@ -127,7 +127,7 @@ end
 
 function FullCombo()
 	local cdr = math.abs(myHero.cdr*100) -- our cooldown reduction
-	local target = AutoCarry.GetAttackTarget()
+	local target = AutoCarry.GetAttackTarget(true)
 	local calcenemy = 1
 
 	if not ValidTarget(target) then return true end
@@ -170,7 +170,7 @@ function FullCombo()
 end
 
 function Harass()
-	local target = AutoCarry.GetAttackTarget()
+	local target = AutoCarry.GetAttackTarget(true)
 	if ValidTarget(target) then
 		if AutoCarry.PluginMenu.hwQ and QREADY and (GetDistance(target) <= SpellRangeQ) then CastSpell(_Q, target) end
 		if AutoCarry.PluginMenu.hwW and WREADY and (GetDistance(target) <= SpellRangeW) then CastSpell(_W, target) end
