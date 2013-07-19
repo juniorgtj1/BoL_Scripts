@@ -2,10 +2,9 @@
 
 --[[ Config ]]--
 -- set up all hotkeys
-local HK1 = 32 -- Full Combo
-local HK2 = string.byte("Y") -- Harass
-local HK3 = string.byte("W") -- cage nearest enemy
-local HK4 = string.byte("N") -- jungle clearing
+local HK1 = string.byte("Y") -- Harass
+local HK2 = string.byte("W") -- cage nearest enemy
+local HK3 = string.byte("N") -- jungle clearing
 
 --[[ Variables ]]--
 local SpellRangeQ = 650 -- q range
@@ -23,9 +22,9 @@ local enemyMinions = minionManager(MINION_ENEMY, SpellRangeQ, player, MINION_SOR
 
 --[[ Core ]]--
 function PluginOnLoad()
-	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- harass
-	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK3) -- cage
-	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK4) -- jungle clearing
+	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- harass
+	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- cage
+	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK3) -- jungle clearing
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
@@ -182,15 +181,11 @@ function Harass()
 end
 
 function CageNearestEnemy()
-	for i=1, heroManager.iCount do
-		local Enemy = heroManager:GetHero(i)
-        if ValidTarget(NearestEnemy) and ValidTarget(Enemy) then
-        	if GetDistance(Enemy) < GetDistance(NearestEnemy) then
-            	NearestEnemy = Enemy
-            end
-    	else
-            NearestEnemy = Enemy
-    	end
+	local NearestEnemy = nil
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) and closestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+			NearestEnemy = enemy
+		end
 	end
 
 	if myHero:GetDistance(NearestEnemy) <= SpellRangeW then CastSpell(_W, NearestEnemy) end -- Cage him
