@@ -117,6 +117,10 @@ function PluginOnDraw()
 	end
 end
 
+function PluginOnProcessSpell(unit, spell)
+	if ValidTarget(unit, SpellRangeW) and UnderTurret(unit, false) and GetDistance(spell.endPos, myHero) < 10 and WREADY then CastSpell(_W, unit) end -- Thanks to Apple
+end
+
 function KS() -- get the kills
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
