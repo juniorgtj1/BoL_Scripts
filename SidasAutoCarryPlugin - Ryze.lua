@@ -1,4 +1,4 @@
---[[ Simple AutoCarry Plugin with am enhanced skill use ]]--
+--[[ Simple AutoCarry Plugin with an enhanced skill use ]]--
 
 --[[ Config ]]--
 -- set up all hotkeys
