@@ -2,10 +2,9 @@
 
 --[[ Config ]]--
 -- set up all hotkeys
-local HK1 = 32 -- Full Combo
-local HK2 = string.byte("Y") -- Harass
-local HK3 = string.byte("W") -- cage nearest enemy
-local HK4 = string.byte("N") -- jungle clearing
+local HK1 = string.byte("Y") -- Harass
+local HK2 = string.byte("W") -- cage nearest enemy
+local HK3 = string.byte("N") -- jungle clearing
 
 --[[ Variables ]]--
 local SpellRangeQ = 650 -- q range
@@ -13,7 +12,6 @@ local SpellRangeW = 625 -- w range
 local SpellRangeE = 675 -- e range
 local SpellRangeR = 200 -- AOE range
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
-local NearestEnemy = nil -- nearest champ
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
@@ -23,9 +21,9 @@ local enemyMinions = minionManager(MINION_ENEMY, SpellRangeQ, player, MINION_SOR
 
 --[[ Core ]]--
 function PluginOnLoad()
-	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- harass
-	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK3) -- cage
-	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK4) -- jungle clearing
+	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- harass
+	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- cage
+	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK3) -- jungle clearing
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
@@ -39,7 +37,6 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	AutoCarry.PluginMenu:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
-	AutoCarry.PluginMenu:addParam("aTC", "Auto Tower Cage", SCRIPT_PARAM_ONOFF, true) -- Auto Tower Cage
 
 	-- Visual
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
@@ -120,14 +117,7 @@ function PluginOnDraw()
 end
 
 function PluginOnProcessSpell(unit, spell)
-	if (spell.name:find("ChaosTurret") and myHero.team == TEAM_RED) or (spell.name:find("OrderTurret") and myHero.team == TEAM_BLUE) and AutoCarry.PluginMenu.aTC then
-		for i=1, heroManager.iCount do
-			local Unit = heroManager:GetHero(i)
-			if ValidTarget(Unit, SpellRangeW) and WREADY then
-				if GetDistance(spell.endPos, enemy) < 80 then CastSpell(_W, Unit) end
-			end
-		end
-	end
+	if ValidTarget(unit, SpellRangeW) and UnderTurret(unit, false) and GetDistance(spell.endPos, myHero) < 10 and WREADY then CastSpell(_W, unit) end -- Thanks to Apple
 end
 
 function KS() -- get the kills
@@ -194,15 +184,11 @@ function Harass()
 end
 
 function CageNearestEnemy()
-	for i=1, heroManager.iCount do
-		local Enemy = heroManager:GetHero(i)
-        if ValidTarget(NearestEnemy) and ValidTarget(Enemy) then
-        	if GetDistance(Enemy) < GetDistance(NearestEnemy) then
-            	NearestEnemy = Enemy
-            end
-    	else
-            NearestEnemy = Enemy
-    	end
+	local NearestEnemy = nil
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+			NearestEnemy = enemy
+		end
 	end
 
 	if myHero:GetDistance(NearestEnemy) <= SpellRangeW then CastSpell(_W, NearestEnemy) end -- Cage him
