@@ -12,7 +12,6 @@ local SpellRangeW = 625 -- w range
 local SpellRangeE = 675 -- e range
 local SpellRangeR = 200 -- AOE range
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
-local NearestEnemy = nil -- nearest champ
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
@@ -187,7 +186,7 @@ end
 function CageNearestEnemy()
 	local NearestEnemy = nil
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy) and closestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
 			NearestEnemy = enemy
 		end
 	end
