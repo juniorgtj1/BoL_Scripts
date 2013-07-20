@@ -21,7 +21,11 @@ function OnDraw()
 		local Unit = heroManager:GetHero(i)
 		for _,champ in pairs(champs) do
 			if champ.name == Unit.charName then
-				DrawCircle(Unit.x, Unit.y, Unit.z, champ.range, 0xFFFFFF00)
+				if champ.name == "Tristana" then
+					DrawCircle(Unit.x, Unit.y, Unit.z, ((champ.range+Unit.level*9)-9),  0xFFFFFF00)
+				else
+					DrawCircle(Unit.x, Unit.y, Unit.z, champ.range, 0xFFFFFF00)
+				end
 			end
 		end
 	end
