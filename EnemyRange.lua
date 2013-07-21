@@ -16,11 +16,19 @@ local champs = {
 	{name = "Vayne", range = 550}
 }
 
+function OnLoad()
+	Config = scriptConfig("Enemy Draw","EnemyDraw")
+	Config:addParam("drawAllies", "Draw Allies", SCRIPT_PARAM_ONOFF, true)
+
+	print("EnemyRange loaded")
+end
+
 function OnDraw()
 	for i=1, heroManager.iCount do
 		local Unit = heroManager:GetHero(i)
 		for _,champ in pairs(champs) do
 			if champ.name == Unit.charName then
+				if Unit.team == myHero.team and not Config.drawAllies then return true end
 				if champ.name == "Tristana" then
 					DrawCircle(Unit.x, Unit.y, Unit.z, ((champ.range+Unit.level*9)-9),  0xFFFFFF00)
 				else
