@@ -20,7 +20,7 @@ function OnLoad()
 	Config = scriptConfig("Enemy Range","EnemyRange")
 	Config:addParam("drawAllies", "Draw Allies", SCRIPT_PARAM_ONOFF, true)
 
-	print("EnemyRange loaded")
+	print("Enemy Range loaded")
 end
 
 function OnDraw()
