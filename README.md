@@ -13,4 +13,4 @@ Casts E at the nearest enemy if you cast Q. Put it in *BoL/Scripts*.
 EnemyRange.lua
 --------------
 Draws circles to show the range of enemy ADC's. Put it in *BoL/Scripts*.
-![Screenshot](pqmailer.github.com/BoL_Scripts/data/images/EnemyRange.jpg)
+![Screenshot](data/images/EnemyRange.jpg)
