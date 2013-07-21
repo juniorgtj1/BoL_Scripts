@@ -10,3 +10,7 @@ Not fully working at the moment (requires iSAC). Put it in *BoL/Scripts*. You sh
 SorakaE.lua
 -----------
 Casts E at the nearest enemy if you cast Q. Put it in *BoL/Scripts*.
+EnemyRange.lua
+--------------
+Displays circles to show the range of enemy ADC's. Put it in *BoL/Scripts*.
+![Screenshot](http://s11.postimg.org/u1a9s0imr/Enemy_Range_png.jpg)
