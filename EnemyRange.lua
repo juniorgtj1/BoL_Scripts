@@ -17,7 +17,7 @@ local champs = {
 }
 
 function OnLoad()
-	Config = scriptConfig("Enemy Draw","EnemyDraw")
+	Config = scriptConfig("Enemy Range","EnemyRange")
 	Config:addParam("drawAllies", "Draw Allies", SCRIPT_PARAM_ONOFF, true)
 
 	print("EnemyRange loaded")
