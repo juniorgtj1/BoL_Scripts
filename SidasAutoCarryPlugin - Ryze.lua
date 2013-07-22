@@ -202,6 +202,7 @@ function JungleClear()
 		if ValidTarget(mob) then
  			if mob.name == "TT_Spiderboss7.1.1"
 			or mob.name == "Worm12.1.1"
+			or mob.name == "Dragon6.1.1"
 			or mob.name == "AncientGolem1.1.1"
 			or mob.name == "AncientGolem7.1.1"
 			or mob.name == "LizardElder4.1.1"
