@@ -1,7 +1,7 @@
---[[ Varus Auto Carry Plugin; Credits to xxx for the Q stuff]]--
+--[[ Varus Auto Carry Plugin; Credits to xxx for the Q stuff and some of the w stuff]]--
 
 if not VIP_USER then
-	print("Varus can only handled as VIP; Sry")
+	print("Varus can only be handled as VIP; Sry")
 	return
 end
 
@@ -20,15 +20,31 @@ local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text ass
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
 local QReady, WReady, EReady, RReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady
+local Enemys = GetEnemyHeroes()
 
 -- Q
 local cast = false
 local tick = GetTickCount()
-local qChargeTime = 0
+local QChargeTime = 0
 local waitDelay = 2000
 local dynamicRange = 0
 local CastQ = false
 local OVERSHOOT_RANGE = 70
+local QPos = nil
+local QTarget = nil
+
+-- W
+local PoisonStackTS2 = 0
+local PoisonStackTS3 = 0
+local PoisonStack2 = {}
+local PoisonStack3 = {}
+local LastBlightProc = {}
+local BPoison = false
+local delayQE = 3000
+local poisonRecheckTimer = GetTickCount()
+
+-- General
+local AttackDelay = 0
 
 --[[ Core]]--
 function PluginOnLoad()
@@ -45,7 +61,8 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("hwQ", "Harass with Q", SCRIPT_PARAM_ONOFF, true) -- Harass with Q
 	AutoCarry.PluginMenu:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
 	AutoCarry.PluginMenu:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
-	AutoCarry.PluginMenu:addParam("aQ", "Auto Q if W is stacked", SCRIPT_PARAM_ONOFF, true) -- Auto Q if W is stacked
+	AutoCarry.PluginMenu:addParam("aQ", "Auto Q/E if W is stacked", SCRIPT_PARAM_ONOFF, true) -- Auto Q/E if W is stacked
+	AutoCarry.PluginMenu:addParam("tryPrioritizeQ", "Try to prioritize Q", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("aQWS", "Minimum W Stacks to Q", SCRIPT_PARAM_SLICE, 2, 1, 3, 0) -- W stacks to Q
 	AutoCarry.PluginMenu:addParam("lhE", "Last hit with E", SCRIPT_PARAM_ONOFF, true) -- Last hit with E
 	AutoCarry.PluginMenu:addParam("lhEM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
@@ -70,26 +87,15 @@ function PluginOnLoad()
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
 	AutoCarry.SkillsCrosshair.range = SpellRangeQ
+
+	qp = TargetPredictionVIP(SkillQ.range, SkillQ.speed*1000, SkillQ.delay/1000, SkillQ.with)
 end
 
 function PluginOnTick()
 	CooldownHandler()
-	-- Whole Q Stuff
-	if cast then
-		qChargeTime = math.max(0, GetTickCount()-tick)
-		qChargeTime = math.min(qChargeTime, 2000)
-	else
-		qChargeTime = 0
-	end
-
-	dynamicRange = 925 + (0.3375 * qChargeTime)
-
-	if qChargeTime < 300 then
-		dynamicRange = dynamicRange - OVERSHOOT_RANGE
-	end
-
-	-- Q Stuff end --
-
+	AttackDelay = (( 1000 * ( -0.435 + (0.625/0.658)) ) / (myHero.attackSpeed/(1/0.658)))
+	QGeneral()
+	PoisonReCheck()
 	if AutoCarry.PluginMenu.ks then KS() end
 	if AutoCarry.PluginMenu.slow then SlowNearestEnemy() end
 	if AutoCarry.MainMenu.AutoCarry then FullCombo() end
@@ -142,12 +148,68 @@ function PluginOnDraw()
 	end
 end
 
-function PluginOnSendPacket(packet)
-	local packet = Packet(packet) --smartcast fix
-    if packet.header == 0xE6 and cast then -- 2nd cast of channel spells packet2
+function PluginOnCreateObj(object)
+	if object and object.name == "VarusQChannel.troy" and GetDistance(object) < 150 then
+		cast = true
+	end
+
+	if object and object.name == "VarusW_counter_01.troy" then
+		for i=1, enemy in ipairs(Enemys) do
+			if ValidTarget(enemy, 1000) and TargetHaveBuff("varuswdebuff", enemy) and GetDistance(enemy, object) < 150 then
+				PoisonStack2[i] = 0
+				PoisonStack3[i] = 0
+			end
+		end
+	end
+
+	if object and object.name == "VarusW_counter_02.troy" then
+		for i=1, enemy in ipairs(Enemys) do
+			if ValidTarget(enemy, 1000) and TargetHaveBuff("varuswdebuff", enemy) and GetDistance(enemy, object) < 150 then
+				PoisonStack2[i] = GetTickCount()
+				PoisonStack3[i] = 0
+			end
+		end
+	end
+
+	if object and object.name == "VarusW_counter_03.troy" then
+		for i=1, enemy in ipairs(Enemys) do
+			if ValidTarget(enemy, 1000) and TargetHaveBuff("varuswdebuff", enemy) and GetDistance(enemy, object) < 150 then
+				PoisonStack2[i] = 0
+				PoisonStack3[i] = GetTickCount()
+			end
+		end
+	end
+end	
+
+function PluginOnDeleteObj(object)
+	if object and object.name == "VarusQChannel.troy" and GetDistance(object) < 300 then
+		cast = false
+		QTarget = nil
+	end
+
+	if object and object.name == "VarusW_counter_02.troy" then
+		for i=1, enemy in ipairs(Enemys) do
+			if enemy and not TargetHaveBuff("varuswdebuff", enemy) and GetDistance(enemy, object) < 150 then
+				PoisonStack2[i] = 0
+			end
+		end
+	end
+
+	if object and object.name == "VarusW_counter_03.troy" then
+		for i=1, enemy in ipairs(Enemys) do
+			if enemy and not TargetHaveBuff("varuswdebuff", enemy) and GetDistance(enemy, object) < 150 then
+				PoisonStack3[i] = 0
+			end
+		end
+	end	
+end
+
+function OnSendPacket(packet)
+	local packet = Packet(packet)
+    if packet.header == 0xE6 and cast then
 		packet.pos = 5
         spelltype = packet:Decode1()
-		if spelltype == 0x80 then -- 0x80 == Q
+		if spelltype == 0x80 then
             packet2.pos = 1
             packet2:Block()
         end
@@ -224,14 +286,116 @@ function LastHitE()
 	return
 end
 
+function PoisonReCheck()
+	if GetTickCount() - poisonRecheckTimer > 99 then
+		poisonRecheckTimer = GetTickCount()
+		delayQE = 3*AttackDelay + 1000	
+		BPoison = false
+		for i=1, enemy in ipairs(GetEnemyHeroes()) do
+			if cast then BPoison = true end
+			if ValidTarget(enemy, SkillQ.range) then
+				if PoisonStack2[i] ~= 0 or PoisonStack3[i] ~= 0 then
+					if not TargetHaveBuff("varuswdebuff", enemy) then
+						PoisonStack2[i] = 0
+						PoisonStack3[i] = 0
+					else
+						BPoison = true
+					end
+				end
+			end
+		end
+	end
+end
+
 function CastQAuto()
-	-- body
+	if not BPoison or not QReady then return true end
+
+	for i=1, enemy in ipairs(Enemys) do
+		if ValidTarget(SkillQ.range, enemy) then
+			PoisonStackTS2 = PoisonStack2[i]
+			PoisonStackTS3 = PoisonStack3[i]
+
+			QPos = qp:GetPrediction(enemy)
+
+			if not cast and ((not QReady and EReady) or (QReady and EReady and not AutoCarry.PluginMenu.tryPrioritizeQ)) and PoisonStackTS2 or PoisonStackTS3 and (GetTickCount() - LastBlightProc[i] > delayQE) then
+				CastSkillshot(SkillE, enemy)
+			end
+
+			if (QReady and not EReady) or (AutoCarry.PluginMenu.tryPrioritizeQ and QReady and not EReady) then
+				if not cast and (GetDistance(enemy) <= SkillQ.range and GetTickCount() - poisonedtimets3 < 12000 and (GetTickCount() - LastBlightProc[i] > delayQE) then
+						CastQ()
+						QTarget = enemy
+						lastBlightProc[i] = GetTickCount()
+						return
+				end
+
+				if cast and QPos and GetDistance(QPos) <= dynamicRange and QTarget and enemy.networkID == QTarget.networkID and (GetTickCount()-tick > 300 or (GetDistance(QPos) < 800 and GetTickCount()-tick > 150)) then
+						CastQEnd()
+						QTarget = nil
+						lastBlightProc[i] = GetTickCount()
+						return
+				end	
+			end
+		end
+	end
 end
 
 function CastQ(Unit)
-	if not QReady then return true end
+	if not QReady and cast then return true end
 
-	cast = true
+	QPos = qp:GetPrediction(Unit)
+	if QPos then
+		cast = true
+		CastSpell(_Q, Unit.x, Unit.z)
+		tick = GetTickCount()
+	end
+end
+
+function QGeneral()
+if cast then
+		QChargeTime = math.max(0, GetTickCount()-tick)
+		QChargeTime = math.min(QChargeTime, 2000)
+	else
+		QChargeTime = 0
+	end
+
+	dynamicRange = 925 + (0.3375 * QChargeTime)
+
+	if QChargeTime < 300 then
+		dynamicRange = dynamicRange - OVERSHOOT_RANGE
+	end
+end
+
+function CastQEnd()
+	if QPos then
+		cast = false
+		pQ2 = CLoLPacket(0xE6)
+		pQ2:EncodeF(myHero.networkID)
+		pQ2:Encode1(128) --Q
+		pQ2:EncodeF(QPos.x)
+		pQ2:EncodeF(QPos.y)
+		pQ2:EncodeF(QPos.z)
+		pQ2.dwArg1 = 1
+		pQ2.dwArg2 = 0
+		SendPacket(pQ2)
+		tick = GetTickCount()
+    end
+end
+
+function CastQEndFast()
+	if QPos and cast then
+		cast = false
+		pQ2 = CLoLPacket(0xE6)
+		pQ2:EncodeF(myHero.networkID)
+		pQ2:Encode1(128) --Q
+		pQ2:EncodeF(QPos.x)
+		pQ2:EncodeF(QPos.y)
+		pQ2:EncodeF(QPos.z)
+		pQ2.dwArg1 = 1
+		pQ2.dwArg2 = 0
+		SendPacket(pQ2)
+		tick = GetTickCount()
+	end
 end
 
 function JungleClear()
