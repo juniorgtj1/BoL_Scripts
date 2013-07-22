@@ -50,7 +50,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("lhE", "Last hit with E", SCRIPT_PARAM_ONOFF, true) -- Last hit with E
 	AutoCarry.PluginMenu:addParam("lhEM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2) -- mana slider
 	AutoCarry.PluginMenu:addParam("lhEMinions", "Minimum amount of minions for E last hit", SCRIPT_PARAM_SLICE, 2, 1, 10, 0) -- minion slider
-	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
+	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with all skills
 
 	-- Visual
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
@@ -149,6 +149,15 @@ function PluginOnCreateObj(object)
 end	
 
 function PluginOnDeleteObj(object)
+	if object and object.name == "VarusW_counter_02.troy" then
+		for i=1, _, enemy in pairs(EnemyTable) do
+			if not TargetHaveBuff("varuswdebuff", enemy) then
+				ProcStacks[i] = 0
+			end
+		end
+		ProcReady = false
+	end
+
 	if object and object.name == "VarusW_counter_03.troy" then
 		for i=1, _, enemy in pairs(EnemyTable) do
 			if not TargetHaveBuff("varuswdebuff", enemy) then
@@ -174,10 +183,12 @@ function FullCombo()
    	end
 
    	if IGNITEReady and killable[calcenemy] == 3 then CastSpell(IGNITESlot, target) end
-   	if RUINEDKINGReady and (killable[calcenemy] == 2 or killable[calcenemy] == 3) then CastSpell(RUINEDKINGSlot, target) end
-   	if RANDUINSReady then CastSpell(RANDUINSSlot) end
+   	if AutoCarry.PluginMenu.aItems then
+   		if RUINEDKINGReady and (killable[calcenemy] == 2 or killable[calcenemy] == 3) then CastSpell(RUINEDKINGSlot, target) end
+   		if RANDUINSReady then CastSpell(RANDUINSSlot) end
+   	end
 
-	if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5) or killable[calcenemy] == 2 or killable[calcenemy] == 3 then
+	if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5) or killable[calcenemy] == 2 or killable[calcenemy] == 3  and AutoCarry.PluginMenu.aUlti then
 		if ValidTarget(SkillR.range, target) and RReady then CastSkillshot(SkillR, target) end
 	end
 
@@ -188,9 +199,10 @@ end
 
 function Harass()
 	local target = AutoCarry.GetAttackTarget()
+	local TrueRange = GetTrueRange
 	if ValidTarget(target) then
-		if AutoCarry.PluginMenu.hwQ and QReady and (GetDistance(target) <= SkillQ.range) then CastQ(target) end
-		if AutoCarry.PluginMenu.hwE and EReady and (GetDistance(target) <= SkillE.range) then CastSkillshot(SkillE, target) end
+		if AutoCarry.PluginMenu.hwE and EReady and GetDistance(target) <= SkillE.range then CastSkillshot(SkillE, target) end
+		if AutoCarry.PluginMenu.hwQ and QReady and GetDistance(target) <= SkillQ.range and GetDistance(target) > TrueRange then CastQ(target) end
 	end
 	myHero:MoveTo(mousePos.x, mousePos.z)
 	CustomAttackEnemy(target)
@@ -232,6 +244,7 @@ end
 
 function CastEQAuto()
 	if not ProcReady then return true end
+	TrueRange = GetTrueRange()
 
 	if AutoCarry.PluginMenu.tryPrioritizeQ and QReady then
 		for i=1, _, enemy in pairs(EnemyTable) do
@@ -241,7 +254,7 @@ function CastEQAuto()
 		end
 	elseif (not AutoCarry.PluginMenu.tryPrioritizeQ and EReady) or (AutoCarry.PluginMenu.tryPrioritizeQ and not QReady and EReady) and GetTickCount() > Tick + (AutoCarry.PluginMenu.waitDelay + 1000) then
 		for i=1, _, enemy in pairs(EnemyTable) do
-			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(SkillE.range, enemy) then
+			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(SkillE.range, enemy) and GetDistance(enemy) > TrueRange then
 				CastSkillshot(SkillE, enemy)
 			end
 		end
@@ -322,7 +335,7 @@ function KS()
 			CustomAttackEnemy(enemy)
 		elseif ValidTarget(enemy, SkillE.range) and getDmg("E", enemy, myHero) >= enemy.health then
 			CastSkillshot(SkillE, enemy)
-		elseif ValidTarget(enemy, SkillQ.range) and getDmg("Q", enemy, myHero) >= enemy.health and not Collision(SkillQ, enemy) then
+		elseif ValidTarget(enemy, SkillQ.range) and getDmg("Q", enemy, myHero) >= enemy.health then
 			CastQ(enemy)
  		elseif ValidTarget(enemy, SkillR.range) and getDmg("R", enemy, myHero) >= enemy.health then
 			CastSkillshot(SkillR, enemy)
