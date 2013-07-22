@@ -45,7 +45,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("aQ", "Auto Q/E if W is stacked", SCRIPT_PARAM_ONOFF, true) -- Auto Q/E if W is stacked
 	AutoCarry.PluginMenu:addParam("waitDelay", "Delay before Q (ms)",SCRIPT_PARAM_SLICE, 250, 0, 2000, 2) -- the q delay
 	AutoCarry.PluginMenu:addParam("tryPrioritizeQ", "Try to prioritize Q", SCRIPT_PARAM_ONOFF, true) -- q > e on prock
-	AutoCarry.PluginMenu:addParam("aQWS", "Minimum W Stacks to Q", SCRIPT_PARAM_SLICE, 2, 1, 3, 0) -- W stacks to Q
+	AutoCarry.PluginMenu:addParam("aQEWS", "Minimum W Stacks to Q/W", SCRIPT_PARAM_SLICE, 2, 1, 3, 0) -- W stacks to Q
 	AutoCarry.PluginMenu:addParam("lhE", "Last hit with E", SCRIPT_PARAM_ONOFF, true) -- Last hit with E
 	AutoCarry.PluginMenu:addParam("lhEM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2) -- mana slider
 	AutoCarry.PluginMenu:addParam("lhEMinions", "Minimum amount of minions for E last hit", SCRIPT_PARAM_SLICE, 2, 1, 10, 0) -- minion slider
@@ -172,6 +172,7 @@ function FullCombo()
     	end
    	end
 
+   	if IGNITEReady and killable[calcenemy] == 3 then CastSpell(IGNITESlot, target) end
    	if RUINEDKINGReady and (killable[calcenemy] == 2 or killable[calcenemy] == 3) then CastSpell(RUINEDKINGSlot, target) end
    	if RANDUINSReady then CastSpell(RANDUINSSlot) end
 
@@ -233,13 +234,13 @@ function CastEQAuto()
 
 	if AutoCarry.PluginMenu.tryPrioritizeQ and QReady then
 		for i=1, _, enemy in pairs(Enemys) do
-			if ProcStacks[i] >= AutoCarry.PluginMenu.aQWS and ValidTarget(SkillQ.range, enemy) then
+			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(SkillQ.range, enemy) then
 				CastQ(enemy)
 			end
 		end
 	elseif (not AutoCarry.PluginMenu.tryPrioritizeQ and EReady) or (AutoCarry.PluginMenu.tryPrioritizeQ and not QReady and EReady) and GetTickCount() > Tick + (AutoCarry.PluginMenu.waitDelay + 1000) then
 		for i=1, _, enemy in pairs(Enemys) do
-			if ProcStacks[i] >= AutoCarry.PluginMenu.aQWS and ValidTarget(SkillE.range, enemy) then
+			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(SkillE.range, enemy) then
 				CastSkillshot(SkillE, enemy)
 			end
 		end
