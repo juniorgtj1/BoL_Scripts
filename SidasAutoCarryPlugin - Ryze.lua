@@ -186,6 +186,7 @@ end
 function CageNearestEnemy()
 	local NearestEnemy = nil
 	for _, enemy in pairs(GetEnemyHeroes()) do
+		if not enemy.valid then return true end -- may be removed again
 		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
 			NearestEnemy = enemy
 		end
