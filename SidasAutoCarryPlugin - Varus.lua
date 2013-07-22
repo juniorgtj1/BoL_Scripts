@@ -12,14 +12,14 @@ local HK3 = string.byte("E") -- slow nearest target
 
 --->>> Do not touch anything below here <<<---
 
-local SkillQ = {spellKey = _Q, range = 1600, speed = 1.85, delay = 0, width = 60}
+local SkillQ = {spellKey = _Q, range = 1475, speed = 1.85, delay = 0, width = 60}
 local SkillE = {spellKey = _E, range = 925, speed = 1.5, delay = 242, width = 100}
-local SkillR = {spellKey = _R, range = 1190, speed = 1.95, delay = 250 , width = 80}
-local levelSequence = {nil,0,1,3,3,4,3,1,3,1,4,1,1,2,2,4,2,2} -- we level the spells that way, first point free choice; W or E
+local SkillR = {spellKey = _R, range = 1075, speed = 1.95, delay = 250 , width = 80}
+local levelSequence = {nil,0,2,1,1,4,1,3,1,3,4,3,3,2,2,4,2,2} -- we level the spells that way, first point free choice; W or E
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
-local QReady, WReady, EReady, RReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady
+local QReady, WReady, EReady, RReady, BWCReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady = nil, nil, nil, nil, nil, nil, nil, nil, nil
 local EnemyTable = GetEnemyHeroes()
 local MinionTable = AutoCarry.EnemyMinions().objects
 local Cast = false
@@ -183,7 +183,9 @@ function FullCombo()
    	end
 
    	if IGNITEReady and killable[calcenemy] == 3 then CastSpell(IGNITESlot, target) end
+
    	if AutoCarry.PluginMenu.aItems then
+   		if BWCReady and (killable[calcenemy] == 2 or killable[calcenemy] == 3) then CastSpell(BWCSlot, target) end
    		if RUINEDKINGReady and (killable[calcenemy] == 2 or killable[calcenemy] == 3) then CastSpell(RUINEDKINGSlot, target) end
    		if RANDUINSReady then CastSpell(RANDUINSSlot) end
    	end
@@ -293,6 +295,7 @@ function JungleClear()
 		if ValidTarget(mob) then
  			if mob.name == "TT_Spiderboss7.1.1"
 			or mob.name == "Worm12.1.1"
+			or mob.name == "Dragon6.1.1"
 			or mob.name == "AncientGolem1.1.1"
 			or mob.name == "AncientGolem7.1.1"
 			or mob.name == "LizardElder4.1.1"
@@ -331,7 +334,11 @@ end
 function KS()
 	local TrueRange = GetTrueRange()
 	for _, enemy in pairs(EnemyTable) do
-		if ValidTarget(enemy, TrueRange) and getDmg("AD",enemy,myHero) >= enemy.health then
+		if ValidTarget(enemy, 500) and BWCReady and getDmg("BWC", enemy, myHero) >= enemy.health then
+			CastSpell(BWCSlot, enemy)
+		elseif ValidTarget(enemy, 500) and RUINEDKINGReady and getDmg("RUINEDKING", enemy, myHero) >= enemy.health then
+			CastSpell(RUINEDKINGSlot, enemy)
+		elseif ValidTarget(enemy, TrueRange) and getDmg("AD", enemy, myHero) >= enemy.health then
 			CustomAttackEnemy(enemy)
 		elseif ValidTarget(enemy, SkillE.range) and getDmg("E", enemy, myHero) >= enemy.health then
 			CastSkillshot(SkillE, enemy)
@@ -366,10 +373,10 @@ function SlowNearestEnemy()
 end
 
 function onChoiceFunction() -- our callback function for the ability leveling
-	if myHero:GetSpellData(_W).level < myHero:GetSpellData(_E).level then
-		return 2
-	else
+	if myHero:GetSpellData(_E).level < myHero:GetSpellData(_Q).level then
 		return 3
+	else
+		return 1
 	end
 end
 
@@ -391,7 +398,7 @@ function Collision(Spell, Unit)
 end
 
 function CooldownHandler()
-	RUINEDKINGSlot, QUICKSILVERSlot, RANDUINSSlot = GetInventorySlotItem(3153), GetInventorySlotItem(3140), GetInventorySlotItem(3143)
+	RUINEDKINGSlot, QUICKSILVERSlot, RANDUINSSlot, BWCSlot = GetInventorySlotItem(3153), GetInventorySlotItem(3140), GetInventorySlotItem(3143), GetInventorySlotItem(3144)
 	QReady = (myHero:CanUseSpell(_Q) == READY)
 	WReady = (myHero:CanUseSpell(_W) == READY)
 	EReady = (myHero:CanUseSpell(_E) == READY)
@@ -406,13 +413,14 @@ function DMGCalculation()
 	for i=1, heroManager.iCount do
         local Unit = heroManager:GetHero(i)
         if ValidTarget(Unit) then
-        	local RUINEDKINGDamage, IGNITEDamage = 0, 0
+        	local RUINEDKINGDamage, IGNITEDamage, BWCDamage = 0, 0, 0
         	local QDamage = getDmg("Q",Unit,myHero)
 			local WDamage = getDmg("W",Unit,myHero)
 			local EDamage = getDmg("E",Unit,myHero)
 			local RDamage = getDmg("R", Unit, myHero)
 			local HITDamage = getDmg("AD",Unit,myHero)
 			local IGNITEDamage = (IGNITESlot and getDmg("IGNITE",Unit,myHero) or 0)
+			local BWCDamage = (BWCSlot and getDmg("BWC",Unit,myHero) or 0)
 			local RUINEDKINGDamage = (RUINEDKINGSlot and getDmg("RUINEDKING",Unit,myHero) or 0)
 			local combo1 = HITDamage
 			local combo2 = HITDamage
@@ -444,6 +452,11 @@ function DMGCalculation()
 				combo2 = combo2 + RDamage
 				combo3 = combo3 + RDamage
 				mana = mana + myHero:GetSpellData(_E).mana
+			end
+
+			if BWCReady then
+				combo2 = combo2 + BWCDamage
+				combo3 = combo3 + BWCDamage
 			end
 
 			if RUINEDKINGReady then
