@@ -334,7 +334,7 @@ end
 function SlowNearestEnemy()
 	local NearestEnemy = nil
 	for _, enemy in pairs(EnemyTable) do
-		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+		if ValidTarget(enemy) and NearestEnemy == nil or GetDistanceSqr(enemy) < GetDistanceSqr(NearestEnemy) then
 			NearestEnemy = enemy
 		end
 	end
