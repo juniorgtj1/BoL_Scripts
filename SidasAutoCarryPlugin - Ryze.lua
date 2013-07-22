@@ -186,12 +186,12 @@ end
 function CageNearestEnemy()
 	local NearestEnemy = nil
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy) and NearestEnemy == nil or GetDistanceSqr(enemy) < GetDistanceSqr(NearestEnemy) then
+		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
 			NearestEnemy = enemy
 		end
 	end
 
-	if myHero:GetDistance(NearestEnemy) <= SpellRangeW then CastSpell(_W, NearestEnemy) end -- Cage him
+	if ValidTarget(NearestEnemy, SpellRangeW) then CastSpell(_W, NearestEnemy) end -- Cage him
 end
 
 function JungleClear()
@@ -232,7 +232,7 @@ end
 
 function JungleSteal()
 	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
-		if ValidTarget(mob,SpellRangeQ) and QREADY and (getDmg("Q", mob, myHero) >= mob.health) then CastSpell(_Q, mob) end
+		if ValidTarget(mob, SpellRangeQ) and QREADY and (getDmg("Q", mob, myHero) >= mob.health) then CastSpell(_Q, mob) end
 		if ValidTarget(mob, SpellRangeE) and EREADY and (getDmg("E", mob, myHero) >= mob.health) then CastSpell(_E, mob) end
 		if ValidTarget(mob, SpellRangeW) and WREADY and (getDmg("W", mob, myHero) >= mob.health) then CastSpell(_W, mob) end
 	end
