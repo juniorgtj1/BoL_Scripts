@@ -1,4 +1,4 @@
---[[ Varus Auto Carry Plugin; Credits to xxx for the Q stuff and some of the w stuff]]--
+--[[ Varus Auto Carry Plugin; Credits to vadash for the Q stuff and some of the w stuff]]--
 
 if not VIP_USER then
 	print("Varus can only be handled as VIP; Sry")
