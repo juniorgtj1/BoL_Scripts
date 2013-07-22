@@ -354,7 +354,7 @@ end
 function SlowNearestEnemy()
 	local NearestEnemy = nil
 	for _, enemy in pairs(EnemyTable) do
-		if ValidTarget(enemy) and NearestEnemy == nil or GetDistanceSqr(enemy) < GetDistanceSqr(NearestEnemy) then
+		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
 			NearestEnemy = enemy
 		end
 	end
@@ -362,13 +362,12 @@ function SlowNearestEnemy()
 	if RANDUINSReady then CastSpell(RANDUINSSlot) end
 
 	if EReady then 
-		if myHero:GetDistance(NearestEnemy) <= SkillE.range then AutoCarry.CastSkillshot(SkillE, NearestEnemy) end
+		if ValidTarget(NearestEnemy, SkillE.range) then AutoCarry.CastSkillshot(SkillE, NearestEnemy) end
 		return
 	end
 
 	if RReady and AutoCarry.PluginMenu.swR then
-		if myHero:GetDistance(NearestEnemy) <= SkillR.range then AutoCarry.CastSkillshot(SkillR, NearestEnemy) end
-		return
+		if ValidTarget(NearestEnemy, SkillR.range) then AutoCarry.CastSkillshot(SkillR, NearestEnemy) end
 	end
 end
 
