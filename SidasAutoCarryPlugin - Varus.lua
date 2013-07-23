@@ -19,7 +19,7 @@ local levelSequence = {nil,0,2,1,1,4,1,3,1,3,4,3,3,2,2,4,2,2} -- we level the sp
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
-local QReady, WReady, EReady, RReady, BWCReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady = nil, nil, nil, nil, nil, nil, nil, nil, nil
+local QReady, WReady, EReady, RReady, BWCReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady, CLEANSEReady = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
 local EnemyTable = GetEnemyHeroes()
 local MinionTable = AutoCarry.EnemyMinions().objects
 local Cast = false
@@ -38,7 +38,9 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming e on the minions while lane clearing
 	AutoCarry.PluginMenu:addParam("aUlti", "Use Ulti in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if ulti should be used in full combo
 	AutoCarry.PluginMenu:addParam("aItems", "Use Items in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if items should be used in full combo
-	AutoCarry.PluginMenu:addParam("aIGN", "Auto Ignite", SCRIPT_PARAM_ONOFF, true) -- decide if summoner spells should be used automatic
+	AutoCarry.PluginMenu:addParam("aIGN", "Auto Ignite", SCRIPT_PARAM_ONOFF, true) -- ignite
+	AutoCarry.PluginMenu:addParam("aCL", "Auto Cleanse", SCRIPT_PARAM_ONOFF, true) -- cleanse
+	AutoCarry.PluginMenu:addParam("aBA", "Auto Barrier", SCRIPT_PARAM_ONOFF, true) -- barrier
 	AutoCarry.PluginMenu:addParam("swR", "Slow with R if E is on CD", SCRIPT_PARAM_ONOFF, false) -- use ulti to escape
 	AutoCarry.PluginMenu:addParam("hwQ", "Harass with Q", SCRIPT_PARAM_ONOFF, true) -- Harass with Q
 	AutoCarry.PluginMenu:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
@@ -58,6 +60,7 @@ function PluginOnLoad()
 	-- perma show HK1-4
 	AutoCarry.PluginMenu:permaShow("harass")
 	AutoCarry.PluginMenu:permaShow("jungle")
+	AutoCarry.PluginMenu:permaShow("slow")
 
 
 	if AutoCarry.PluginMenu.aSkills then -- setup the skill autolevel
@@ -66,7 +69,8 @@ function PluginOnLoad()
 	end
 
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
-	
+	CLEANSESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerCleanse") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerCleanse") and SUMMONER_2) or nil) -- do we have ignite?
+
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
 	AutoCarry.SkillsCrosshair.range = SpellRangeQ
@@ -359,7 +363,7 @@ function SlowNearestEnemy()
 		end
 	end
 
-	if RANDUINSReady then CastSpell(RANDUINSSlot) end
+	if RANDUINSReady and GetDistance(NearestEnemy) <= 200 then CastSpell(RANDUINSSlot) end
 
 	if EReady then 
 		if ValidTarget(NearestEnemy, SkillE.range) then AutoCarry.CastSkillshot(SkillE, NearestEnemy) end
@@ -388,14 +392,6 @@ function CustomAttackEnemy(enemy)
 	AutoCarry.shotFired = true
 end
 
-function Collision(Spell, Unit) 
-	local Collision:__init(Spell.range, Spell.speed*1000, Spell.delay/1000, Spell.with)
-
-	if Collision:GetMinionCollision(myHero, Unit) then
-		return true
-	end
-end
-
 function CooldownHandler()
 	RUINEDKINGSlot, QUICKSILVERSlot, RANDUINSSlot, BWCSlot = GetInventorySlotItem(3153), GetInventorySlotItem(3140), GetInventorySlotItem(3143), GetInventorySlotItem(3144)
 	QReady = (myHero:CanUseSpell(_Q) == READY)
@@ -406,6 +402,7 @@ function CooldownHandler()
 	QUICKSILVERReady = (QUICKSILVERSlot ~= nil and myHero:CanUseSpell(QUICKSILVERSlot) == READY)
 	RANDUINSReady = (RANDUINSSlot ~= nil and myHero:CanUseSpell(RANDUINSSlot) == READY)
 	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY)
+	CLEANSEReady = (CLEANSESlot ~= nil and myHero:CanUseSpell(CLEANSESlot) == READY)
 end
 
 function DMGCalculation()
@@ -450,7 +447,7 @@ function DMGCalculation()
 			if RReady then
 				combo2 = combo2 + RDamage
 				combo3 = combo3 + RDamage
-				mana = mana + myHero:GetSpellData(_E).mana
+				mana = mana + myHero:GetSpellData(_R).mana
 			end
 
 			if BWCReady then
