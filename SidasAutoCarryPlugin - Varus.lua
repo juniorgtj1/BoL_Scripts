@@ -78,7 +78,7 @@ end
 function PluginOnTick()
 	CooldownHandler()
 	if (TargetHaveBuff("SummonerDot", myHero) and TargetHaveBuff("SummonerExhaust", myHero)) or (TargetHaveBuff("SummonerDot", myHero) and myHero.health/myHero.maxHealth <= 0.5) or (TargetHaveBuff("SummonerExhaust", myHero) and myHero.health/myHero.maxHealth <= 0.5) and CLEANSEReady and AutoCarry.PluginMenu.aCL then CastSpell(CLEANSESlot) end
-	if myHero.health/myHero.maxHealth < AutoCarry.PluginMenu.BAlr and BARRIERReady and AutoCarry.PluginMenu.aBA then CastSpell(BARRIERSlot) end
+	if myHero.health/myHero.maxHealth <= AutoCarry.PluginMenu.BAlr and BARRIERReady and AutoCarry.PluginMenu.aBA then CastSpell(BARRIERSlot) end
 	if AutoCarry.PluginMenu.ks then KS() end
 	if AutoCarry.PluginMenu.slow then SlowNearestEnemy() end
 	if AutoCarry.MainMenu.AutoCarry then FullCombo() end
