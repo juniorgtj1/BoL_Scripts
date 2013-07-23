@@ -19,7 +19,7 @@ local levelSequence = {nil,0,2,1,1,4,1,3,1,3,4,3,3,2,2,4,2,2} -- we level the sp
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
-local QReady, WReady, EReady, RReady, BWCReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady, CLEANSEReady = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
+local QReady, WReady, EReady, RReady, BWCReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady, BARRIERReady, CLEANSEReady = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
 local EnemyTable = GetEnemyHeroes()
 local MinionTable = AutoCarry.EnemyMinions().objects
 local Cast = false
@@ -39,8 +39,9 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("aUlti", "Use Ulti in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if ulti should be used in full combo
 	AutoCarry.PluginMenu:addParam("aItems", "Use Items in Full Combo", SCRIPT_PARAM_ONOFF, true) -- decide if items should be used in full combo
 	AutoCarry.PluginMenu:addParam("aIGN", "Auto Ignite", SCRIPT_PARAM_ONOFF, true) -- ignite
+	AutoCarry.PluginMenu:addParam("aBA", "Use Barrier", SCRIPT_PARAM_ONOFF, true) -- barrier
+	AutoCarry.PluginMenu:addParam("BAlr", "Barrier Life Ratio", SCRIPT_PARAM_SLICE, 0.15, 0, 1, 2) -- life ratio
 	AutoCarry.PluginMenu:addParam("aCL", "Auto Cleanse", SCRIPT_PARAM_ONOFF, true) -- cleanse
-	AutoCarry.PluginMenu:addParam("aBA", "Auto Barrier", SCRIPT_PARAM_ONOFF, true) -- barrier
 	AutoCarry.PluginMenu:addParam("swR", "Slow with R if E is on CD", SCRIPT_PARAM_ONOFF, false) -- use ulti to escape
 	AutoCarry.PluginMenu:addParam("hwQ", "Harass with Q", SCRIPT_PARAM_ONOFF, true) -- Harass with Q
 	AutoCarry.PluginMenu:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
@@ -53,23 +54,19 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("lhEM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2) -- mana slider
 	AutoCarry.PluginMenu:addParam("lhEMinions", "Minimum amount of minions for E last hit", SCRIPT_PARAM_SLICE, 2, 1, 10, 0) -- minion slider
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with all skills
-
-	-- Visual
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
-
-	-- perma show HK1-4
 	AutoCarry.PluginMenu:permaShow("harass")
 	AutoCarry.PluginMenu:permaShow("jungle")
 	AutoCarry.PluginMenu:permaShow("slow")
-
 
 	if AutoCarry.PluginMenu.aSkills then -- setup the skill autolevel
 		autoLevelSetSequence(levelSequence)
 		autoLevelSetFunction(onChoiceFunction) -- add the callback to choose the first skill
 	end
 
-	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil) -- do we have ignite?
-	CLEANSESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerCleanse") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerCleanse") and SUMMONER_2) or nil) -- do we have ignite?
+	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil)
+	BARRIERSlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerBarrier") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerBarrier") and SUMMONER_2) or nil)
+	CLEANSESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerCleanse") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerCleanse") and SUMMONER_2) or nil)
 
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
@@ -80,6 +77,8 @@ end
 
 function PluginOnTick()
 	CooldownHandler()
+	if (TargetHaveBuff("SummonerDot", myHero) and TargetHaveBuff("SummonerExhaust", myHero)) or (TargetHaveBuff("SummonerDot", myHero) and myHero.health/myHero.maxHealth <= 0.5) or (TargetHaveBuff("SummonerExhaust", myHero) and myHero.health/myHero.maxHealth <= 0.5) and CLEANSEReady and AutoCarry.PluginMenu.aCL then CastSpell(CLEANSESlot) end
+
 	if AutoCarry.PluginMenu.ks then KS() end
 	if AutoCarry.PluginMenu.slow then SlowNearestEnemy() end
 	if AutoCarry.MainMenu.AutoCarry then FullCombo() end
@@ -402,6 +401,7 @@ function CooldownHandler()
 	QUICKSILVERReady = (QUICKSILVERSlot ~= nil and myHero:CanUseSpell(QUICKSILVERSlot) == READY)
 	RANDUINSReady = (RANDUINSSlot ~= nil and myHero:CanUseSpell(RANDUINSSlot) == READY)
 	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY)
+	BARRIERReady = (BARRIERSlot ~= nil and myHero:CanUseSpell(BARRIERSlot) == READY)
 	CLEANSEReady = (CLEANSESlot ~= nil and myHero:CanUseSpell(CLEANSESlot) == READY)
 end
 
