@@ -1,4 +1,4 @@
---[[ Varus Auto Carry Plugin; Credits to vadash/HeX for some stuff of their Varus scripts]]--
+--[[ Varus Auto Carry Plugin; Credits to vadash/HeX for some stuff of their Varus scripts; Dekaron for the enemy draw]]--
 
 if not VIP_USER then
 	print("Varus can only be handled as VIP; Sry")
@@ -88,7 +88,6 @@ function PluginOnTick()
 	if AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.jungle then JungleClear() end
 	if (AutoCarry.PluginMenu.aQ or AutoCarry.MainMenu.MixedMode) and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.LaneClear or AutoCarry.PluginMenu.Harass) then CastEQAuto() end
 	if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.lhE and ((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhEM then LastHitE() end
-
 end
 
 function PluginOnDraw()
@@ -330,7 +329,7 @@ end
 function JungleSteal()
 	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
 		if ValidTarget(mob, TrueRange) and getDmg("AD",enemy,myHero) >= mob.health then CustomAttackEnemy(mob) end
-		if ValidTarget(mob, SpellRangeE) and EReady and (getDmg("E", mob, myHero) >= mob.health) then CastSkillshot(SkillE, mob) end
+		if ValidTarget(mob, SpellRangeE) and EReady and getDmg("E", mob, myHero) >= mob.health then CastSkillshot(SkillE, mob) end
 	end
 end
 
@@ -466,15 +465,15 @@ function DMGCalculation()
 
 			killable[i] = 1 -- the default value = harass
 
-			if (combo3 >= Unit.health) and (myHero.mana >= mana) then -- all cooldowns needed
+			if combo3 >= Unit.health and myHero.mana >= mana then -- all cooldowns needed
 				killable[i] = 2
 			end
 
-			if (combo2 >= Unit.health) and (myHero.mana >= mana) then -- only spells + ulti and items needed
+			if combo2 >= Unit.health and myHero.mana >= mana then -- only spells + ulti and items needed
 				killable[i] = 3
 			end
 
-			if (combo1 >= Unit.health) and (myHero.mana >= mana) then -- only spells but no ulti needed
+			if combo1 >= Unit.health and myHero.mana >= mana then -- only spells but no ulti needed
 				killable[i] = 4
 			end
 		end
