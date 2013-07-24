@@ -192,7 +192,7 @@ function FullCombo()
    		if RANDUINSReady then CastSpell(RANDUINSSlot) end
    	end
 
-	if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5) or killable[calcenemy] == 2 or killable[calcenemy] == 3  and AutoCarry.PluginMenu.aUlti then
+	if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5) or killable[calcenemy] == 2 or killable[calcenemy] == 3  and AutoCarry.PluginMenu.aUlti and not AutoCarry.GetCollision(SkillR, myHero, target) then
 		if ValidTarget(SkillR.range, target) and RReady then CastSkillshot(SkillR, target) end
 	end
 
@@ -346,7 +346,7 @@ function KS()
 			CastSkillshot(SkillE, enemy)
 		elseif ValidTarget(enemy, SkillQ.range) and getDmg("Q", enemy, myHero) >= enemy.health then
 			CastQ(enemy)
- 		elseif ValidTarget(enemy, SkillR.range) and getDmg("R", enemy, myHero) >= enemy.health then
+ 		elseif ValidTarget(enemy, SkillR.range) and getDmg("R", enemy, myHero) >= enemy.health and not AutoCarry.GetCollision(SkillR, myHero, enemy) then
 			CastSkillshot(SkillR, enemy)
 		end
 	end
@@ -368,7 +368,7 @@ function SlowNearestEnemy()
 		return
 	end
 
-	if RReady and AutoCarry.PluginMenu.swR then
+	if RReady and AutoCarry.PluginMenu.swR and not AutoCarry.GetCollision(SkillR, myHero, NearestEnemy) then
 		if ValidTarget(NearestEnemy, SkillR.range) then AutoCarry.CastSkillshot(SkillR, NearestEnemy) end
 	end
 end
