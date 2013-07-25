@@ -6,9 +6,9 @@ if not VIP_USER then
 end
 
 --[[ Variables ]]--
-local HK1 = string.byte("Y") -- Harass
-local HK2 = string.byte("N") -- jungle clearing
-local HK3 = string.byte("E") -- slow nearest target
+local HK1 = string.byte("E") -- slow nearest target
+local HK2 = string.byte("Y") -- Harass
+local HK3 = string.byte("N") -- jungle clearing
 
 --->>> Do not touch anything below here <<<---
 
@@ -20,8 +20,6 @@ local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text ass
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
 local QReady, WReady, EReady, RReady, BWCReady, RUINEDKINGReady, QUICKSILVERReady, RANDUINSReady, IGNITEReady, BARRIERReady, CLEANSEReady = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
-local EnemyTable = GetEnemyHeroes()
-local MinionTable = AutoCarry.EnemyMinions().objects
 local Cast = false
 local Tick = 0
 local ProcReady = false
@@ -30,9 +28,9 @@ local Target = nil
 
 --[[ Core]]--
 function PluginOnLoad()
-	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- harass
-	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK2) -- jungle clearing
-	AutoCarry.PluginMenu:addParam("slow", "Slow nearest enemy with E", SCRIPT_PARAM_ONKEYTOGGLE, false, HK3) -- auto slow
+	AutoCarry.PluginMenu:addParam("slow", "Slow nearest enemy with E", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- auto slow
+	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYTOGGLE, false, HK2) -- harass
+	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK3) -- jungle clearing
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming e on the minions while lane clearing
@@ -52,12 +50,12 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("aQEWS", "Minimum W Stacks to Q/W", SCRIPT_PARAM_SLICE, 2, 1, 3, 0) -- W stacks to Q
 	AutoCarry.PluginMenu:addParam("lhE", "Last hit with E", SCRIPT_PARAM_ONOFF, true) -- Last hit with E
 	AutoCarry.PluginMenu:addParam("lhEM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2) -- mana slider
-	AutoCarry.PluginMenu:addParam("lhEMinions", "Minimum amount of minions for E last hit", SCRIPT_PARAM_SLICE, 2, 1, 10, 0) -- minion slider
+	AutoCarry.PluginMenu:addParam("lhEMinions", "Min minions for E last hit", SCRIPT_PARAM_SLICE, 2, 1, 10, 0) -- minion slider
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with all skills
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles", SCRIPT_PARAM_ONOFF, false) -- Draw Circles
+	AutoCarry.PluginMenu:permaShow("slow")
 	AutoCarry.PluginMenu:permaShow("harass")
 	AutoCarry.PluginMenu:permaShow("jungle")
-	AutoCarry.PluginMenu:permaShow("slow")
 
 	if AutoCarry.PluginMenu.aSkills then -- setup the skill autolevel
 		autoLevelSetSequence(levelSequence)
@@ -83,10 +81,10 @@ function PluginOnTick()
 	if AutoCarry.PluginMenu.slow then SlowNearestEnemy() end
 	if AutoCarry.MainMenu.AutoCarry then FullCombo() end
 	if AutoCarry.MainMenu.LaneClear then LaneClear() end
-	if AutoCarry.PluginMenu.Harass then Harass() end
+	if AutoCarry.PluginMenu.harass and AutoCarry.MainMenu.MixedMode then Harass() end
 	if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.jungle then JungleSteal() end
 	if AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.jungle then JungleClear() end
-	if (AutoCarry.PluginMenu.aQ or AutoCarry.MainMenu.MixedMode) and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.LaneClear or AutoCarry.PluginMenu.Harass) then CastEQAuto() end
+	if (AutoCarry.PluginMenu.aQ or AutoCarry.MainMenu.MixedMode) and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.Harass) then CastEQAuto() end
 	if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.lhE and ((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhEM then LastHitE() end
 end
 
@@ -132,7 +130,7 @@ end
 
 function PluginOnCreateObj(object)
 	if object and object.name == "VarusW_counter_02.troy" and GetDistance(object, Target) <= 125 then
-		for i=1, _, enemy in pairs(EnemyTable) do
+		for i, enemy in pairs(AutoCarry.EnemyTable) do
 			if ValidTarget(enemy) and TargetHaveBuff("varuswdebuff", enemy) then
 				ProcStacks[i] = 2
 			end
@@ -141,7 +139,7 @@ function PluginOnCreateObj(object)
 	end
 
 	if object and object.name == "VarusW_counter_03.troy" and GetDistance(object, Target) <= 125 then
-		for i=1, _, enemy in pairs(EnemyTable) do
+		for i, enemy in pairs(AutoCarry.EnemyTable) do
 			if ValidTarget(enemy) and TargetHaveBuff("varuswdebuff", enemy) then
 				ProcStacks[i] = 3
 			end
@@ -152,7 +150,7 @@ end
 
 function PluginOnDeleteObj(object)
 	if object and object.name == "VarusW_counter_02.troy" then
-		for i=1, _, enemy in pairs(EnemyTable) do
+		for i, enemy in pairs(AutoCarry.EnemyTable) do
 			if not TargetHaveBuff("varuswdebuff", enemy) then
 				ProcStacks[i] = 0
 			end
@@ -161,7 +159,7 @@ function PluginOnDeleteObj(object)
 	end
 
 	if object and object.name == "VarusW_counter_03.troy" then
-		for i=1, _, enemy in pairs(EnemyTable) do
+		for i, enemy in pairs(AutoCarry.EnemyTable) do
 			if not TargetHaveBuff("varuswdebuff", enemy) then
 				ProcStacks[i] = 0
 			end
@@ -170,10 +168,18 @@ function PluginOnDeleteObj(object)
 	end
 end
 
+function OnSendPaket()
+	local packet = Packet(p)
+    if packet:get('name') == 'S_CAST' then
+    	print(packet:get('spellId'))
+    end
+end
+
 function FullCombo()
 	local target = AutoCarry.GetAttackTarget()
 	local calcenemy = 1
 	local EnemysInRange = CountEnemyHeroInRange()
+	local TrueRange = GetTrueRange()
 
 	if not ValidTarget(target) then return true end
 
@@ -183,7 +189,7 @@ function FullCombo()
     		calcenemy = i
     	end
    	end
-
+   	
    	if IGNITEReady and killable[calcenemy] == 3 then CastSpell(IGNITESlot, target) end
 
    	if AutoCarry.PluginMenu.aItems then
@@ -193,34 +199,33 @@ function FullCombo()
    	end
 
 	if EnemysInRange >= 2 or (myHero.health / myHero.maxHealth <= 0.5) or killable[calcenemy] == 2 or killable[calcenemy] == 3  and AutoCarry.PluginMenu.aUlti and not AutoCarry.GetCollision(SkillR, myHero, target) then
-		if ValidTarget(SkillR.range, target) and RReady then CastSkillshot(SkillR, target) end
+		if ValidTarget(target, SkillR.range) and RReady then CastSkillshot(SkillR, target) end
 	end
 
-	if ValidTarget(SkillE.range, target) and EReady then CastSkillshot(SkillE, target) end
+	if ValidTarget(target, SkillE.range) and EReady then CastSkillshot(SkillE, target) end
 
-	if ValidTarget(SkillQ.range, target) and QReady and myHero:GetDistance(target) > GetTrueRange then CastQ(target) end
+	if ValidTarget(target, SkillQ.range) and QReady and myHero:GetDistance(target) > TrueRange then CastQ(target) end
+
 end
 
 function Harass()
 	local target = AutoCarry.GetAttackTarget()
-	local TrueRange = GetTrueRange
+	local TrueRange = GetTrueRange()
 	if ValidTarget(target) then
 		if AutoCarry.PluginMenu.hwE and EReady and GetDistance(target) <= SkillE.range then CastSkillshot(SkillE, target) end
 		if AutoCarry.PluginMenu.hwQ and QReady and GetDistance(target) <= SkillQ.range and GetDistance(target) > TrueRange then CastQ(target) end
 	end
-	myHero:MoveTo(mousePos.x, mousePos.z)
-	CustomAttackEnemy(target)
 end
 
 function LaneClear()
 	if not EReady then return true end
 
-	for _, minion in pairs(MinionTable) do
-		if ValidTarget(SkillE.range, minion) and getDmg("E", minion, myHero) >= minion.health then CastSkillshot(SkillE, minion) end
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if ValidTarget(minion, SkillE.range) and getDmg("E", minion, myHero) >= minion.health then CastSkillshot(SkillE, minion) end
 	end
 
-	for _, minion in pairs(MinionTable) do
-		if ValidTarget(SkillE.range, minion) then CastSkillshot(SkillE, minion) end
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if ValidTarget(minion, SkillE.range) then CastSkillshot(SkillE, minion) end
 	end
 end
 
@@ -230,16 +235,16 @@ function LastHitE()
 	local killableMinions = 0
 	local Minions = {}
 
-	for _, minion in pairs(MinionTable) do
-		if ValidTarget(SkillE, range) and getDmg("E", minion, myHero) >= minion.health then
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if ValidTarget(minion, SkillE.range) and getDmg("E", minion, myHero) >= minion.health then
 			killableMinions = killableMinions + 1
 			table.insert(Minions, minion)
 		end
 	end
 
 	if killableMinions >= AutoCarry.PluginMenu.lhEMinions then
-		for _, minion in pairs(Minions)
-			if ValidTarget(SkillE.range, minion) and EReady then CastSkillshot(SkillE, minion) end
+		for _, minion in pairs(Minions) do
+			if ValidTarget(minion, SkillE.range) and EReady then CastSkillshot(SkillE, minion) end
 			return
 		end
 	end
@@ -251,14 +256,14 @@ function CastEQAuto()
 	TrueRange = GetTrueRange()
 
 	if AutoCarry.PluginMenu.tryPrioritizeQ and QReady then
-		for i=1, _, enemy in pairs(EnemyTable) do
-			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(SkillQ.range, enemy) then
+		for i, enemy in pairs(AutoCarry.EnemyTable) do
+			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(enemy, SkillQ.range) then
 				CastQ(enemy)
 			end
 		end
 	elseif (not AutoCarry.PluginMenu.tryPrioritizeQ and EReady) or (AutoCarry.PluginMenu.tryPrioritizeQ and not QReady and EReady) and GetTickCount() > Tick + (AutoCarry.PluginMenu.waitDelay + 1000) then
-		for i=1, _, enemy in pairs(EnemyTable) do
-			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(SkillE.range, enemy) and GetDistance(enemy) > TrueRange then
+		for i, enemy in pairs(AutoCarry.EnemyTable) do
+			if ProcStacks[i] >= AutoCarry.PluginMenu.aQEWS and ValidTarget(enemy, SkillE.range) and GetDistance(enemy) > TrueRange then
 				CastSkillshot(SkillE, enemy)
 			end
 		end
@@ -335,7 +340,7 @@ end
 
 function KS()
 	local TrueRange = GetTrueRange()
-	for _, enemy in pairs(EnemyTable) do
+	for _, enemy in pairs(AutoCarry.EnemyTable) do
 		if ValidTarget(enemy, 500) and BWCReady and getDmg("BWC", enemy, myHero) >= enemy.health then
 			CastSpell(BWCSlot, enemy)
 		elseif ValidTarget(enemy, 500) and RUINEDKINGReady and getDmg("RUINEDKING", enemy, myHero) >= enemy.health then
@@ -355,8 +360,12 @@ end
 
 function SlowNearestEnemy()
 	local NearestEnemy = nil
-	for _, enemy in pairs(EnemyTable) do
-		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+	for _, enemy in pairs(AutoCarry.AutoCarry.EnemyTable) do
+		if NearestEnemy and NearestEnemy.valid and enemy and enemy.valid then
+			if GetDistance(enemy) < GetDistance(NearestEnemy) then
+				NearestEnemy = enemy
+			end
+		else
 			NearestEnemy = enemy
 		end
 	end
