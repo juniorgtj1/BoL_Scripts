@@ -1,3 +1,4 @@
+
 --[[ Varus Auto Carry Plugin; Credits to vadash/HeX for some stuff of their Varus scripts; Dekaron for the enemy draw]]--
 
 if not VIP_USER then
@@ -168,10 +169,10 @@ function PluginOnDeleteObj(object)
 	end
 end
 
-function OnSendPaket()
-	local packet = Packet(p)
-    if packet:get('name') == 'S_CAST' then
-    	print(packet:get('spellId'))
+function OnSendPacket(packet)
+	local p = Packet(packet)
+    if p:get("spellId") == _E and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.LaneClear or AutoCarry.MainMenu.MixedMode or AutoCarry.PluginMenu.slow or AutoCarry.PluginMenu.jungle) then
+    	p:block()
     end
 end
 
@@ -225,7 +226,15 @@ function LaneClear()
 	end
 
 	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if ValidTarget(minion, SkillQ.range) and getDmg("Q", minion, myHero) >= minion.health then CastQ(minion) end
+	end
+
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
 		if ValidTarget(minion, SkillE.range) then CastSkillshot(SkillE, minion) end
+	end
+
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if ValidTarget(minion, SkillQ.range) then CastQ(minion) end
 	end
 end
 
@@ -326,7 +335,7 @@ function JungleClear()
 	end
 
 	if ValidTarget(Target) then
-		if myHero:GetDistance(Target) <= GetTrueRange then CustomAttackEnemy(Target) end
+		if myHero:GetDistance(Target) <= TrueRange then CustomAttackEnemy(Target) end
 		if myHero:GetDistance(Target) <= SkillE.range and EReady then CastSkillshot(SkillE, Target) end
 	end
 end
