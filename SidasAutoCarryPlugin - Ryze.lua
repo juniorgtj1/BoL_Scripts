@@ -5,6 +5,7 @@
 local HK1 = string.byte("Y") -- Harass
 local HK2 = string.byte("W") -- cage nearest enemy
 local HK3 = string.byte("N") -- jungle clearing
+local HK4 = string.byte("L") -- Q last hit
 
 --[[ Variables ]]--
 local SpellRangeQ = 650 -- q range
@@ -17,13 +18,13 @@ local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
 local QREADY, WREADY, EREADY, RREADY, DFGReady, HXGReady, SEReady, IGNITEReady = false, false, false, false, false, false, false, false -- item/ignite cooldown
 local DFGSlot, HXGSlot, SESlot, SHEENSlot, TRINITYSlot, LICHBANESlot = nil, nil, nil, nil, nil, nil -- item slots
-local enemyMinions = minionManager(MINION_ENEMY, SpellRangeQ, player, MINION_SORT_HEALTH_ASC)
 
 --[[ Core ]]--
 function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- harass
 	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- cage
 	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK3) -- jungle clearing
+	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONKEYTOGGLE, false, HK4) -- Last hit with Q
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
@@ -34,7 +35,6 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
 	AutoCarry.PluginMenu:addParam("hwW", "Harass with W", SCRIPT_PARAM_ONOFF, false) -- Harass with W
 	AutoCarry.PluginMenu:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
-	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	AutoCarry.PluginMenu:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
 
@@ -45,6 +45,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:permaShow("harass")
 	AutoCarry.PluginMenu:permaShow("cage")
 	AutoCarry.PluginMenu:permaShow("jungle")
+	AutoCarry.PluginMenu:permaShow("lhQ")
 
 	if AutoCarry.PluginMenu.aSkills then -- setup the skill autolevel
 		autoLevelSetSequence(levelSequence)
@@ -72,7 +73,7 @@ function PluginOnTick()
 		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then LaneClear() end -- spamming q/w/e on the minions while lane clearing
 		if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.jungle then JungleSteal() end -- last hit the jungle mobs
 		if AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.jungle then JungleClear() end -- kill jungle mobs with abilities
-		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage or AutoCarry.PluginMenu.jungle) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
+		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
 	end
 end
 
@@ -244,8 +245,7 @@ function JungleSteal()
 end
 
 function LaneClear()
-	enemyMinions:update() -- get the newest minions
-	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
+	for index, minion in pairs(AutoCarry.EnemyMinions().objects) do -- loop through the minions
 		if ValidTarget(minion) then
 			if EREADY and (GetDistance(minion) <= SpellRangeE) then CastSpell(_E, minion) end
 			if QREADY and (GetDistance(minion) <= SpellRangeQ) then CastSpell(_Q, minion) end
@@ -255,8 +255,7 @@ function LaneClear()
 end
 
 function QLastHit()
-	enemyMinions:update() -- get the newest minions
-	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
+	for index, minion in pairs(AutoCarry.EnemyMinions().objects) do -- loop through the minions
     	if ValidTarget(minion, SpellRangeQ) and QREADY then -- check if q is ready and the minion attackable
         	if minion.health <= getDmg("Q", minion, myHero) then -- check if we do enough dmg
             	CastSpell(_Q, minion)	-- kill the minion
