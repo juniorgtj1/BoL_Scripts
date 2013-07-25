@@ -185,9 +185,12 @@ end
 
 function CageNearestEnemy()
 	local NearestEnemy = nil
-	for _, enemy in pairs(GetEnemyHeroes()) do
-		if not enemy.valid then return true end -- may be removed again
-		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+	for _, enemy in pairs(AutoCarry.EnemyTable) do
+		if NearestEnemy and NearestEnemy.valid and enemy and enemy.valid then
+			if GetDistance(enemy) < GetDistance(NearestEnemy) then
+				NearestEnemy = enemy
+			end
+		else
 			NearestEnemy = enemy
 		end
 	end
