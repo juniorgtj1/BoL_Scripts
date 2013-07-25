@@ -171,7 +171,7 @@ end
 
 function OnSendPacket(packet)
 	local p = Packet(packet)
-    if p:get("spellId") == _E and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.LaneClear or AutoCarry.MainMenu.MixedMode or AutoCarry.PluginMenu.slow or AutoCarry.PluginMenu.jungle) then
+    if p:get("spellId") == _E and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.LaneClear or AutoCarry.MainMenu.MixedMode or AutoCarry.PluginMenu.slow) then
     	p:block()
     end
 end
