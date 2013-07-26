@@ -1,5 +1,7 @@
 --[[ Simple script that casts E at the nearest enemy if you press Q on Soraka; Thanks to Sida ]]--
 
+if myHero.charName ~= "Soraka" then return end
+
 local qAt = 0
 function OnProcessSpell(unit, spell)
    if unit.isMe and spell.name == myHero:GetSpellData(_Q).name then
