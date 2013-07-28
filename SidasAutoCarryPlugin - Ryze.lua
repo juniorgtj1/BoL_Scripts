@@ -181,7 +181,8 @@ function Harass()
 		if AutoCarry.PluginMenu.hwW and WREADY and (GetDistance(target) <= SpellRangeW) then CastSpell(_W, target) end
 		if AutoCarry.PluginMenu.hwE and EREADY and (GetDistance(target) <= SpellRangeE) then CastSpell(_E, target) end
 	end
-	myHero:MoveTo(mousePos.x, mousePos.z)
+	
+	if not (AutoCarry.MainMenu.LastHit or AutoCarry.MainMenu.MixedMode) then myHero:MoveTo(mousePos.x, mousePos.z) end
 end
 
 function CageNearestEnemy()
