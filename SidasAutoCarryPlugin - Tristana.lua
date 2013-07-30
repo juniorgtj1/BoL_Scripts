@@ -1,4 +1,4 @@
---[[ Auto Carry Plugin: Tristana ]]--
+--[[ Simple AutoCarry Plugin for Tristana ]]--
 
 local SkillW = {spellKey = _W, range = 900, speed = 1500, delay = 250, width = 200}
 
@@ -25,7 +25,7 @@ function KSW()
 	local EnemysInRange = CountEnemyHeroInRange()
 	for _, enemy in pairs(AutoCarry.EnemyTable) do
 		if ValidTarget(enemy, SkillW.range) and EnemysInRange <= AutoCarry.PluginMenu.eJL and (getDmg("W", enemy, myHero) >= enemy.health or getDmg("W", enemy, myHero) >= enemy.health + (enemy.maxHealth/100*5)) then
-		AutoCarry.CastSkillshot(SkillW, enemy)
+			AutoCarry.CastSkillshot(SkillW, enemy)
 		end
 	end
 end
