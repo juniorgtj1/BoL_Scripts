@@ -14,7 +14,7 @@ Kicks = {
     { charName = "Pantheon", spellName = "Pantheon_GrandSkyfall_Jump"},
     { charName = "Shen", spellName = "ShenStandUnited"},
     { charName = "Urgot", spellName = "UrgotSwap2"},
-    { charName = "Varus", spellName = "VarusQ" ,   },
+    { charName = "Varus", spellName = "VarusQ"},
     { charName = "Warwick", spellName = "InfiniteDuress"}
 }
 
