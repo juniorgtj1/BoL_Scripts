@@ -1,25 +1,30 @@
---[[ Simple AutoCarry Plugin with a enhanced skill use ]]--
+--[[ Simple AutoCarry Plugin with an enhanced skill use ]]--
 
 --[[ Config ]]--
 -- set up all hotkeys
 local HK1 = string.byte("Y") -- Harass
 local HK2 = string.byte("W") -- cage nearest enemy
 local HK3 = string.byte("N") -- jungle clearing
+local HK4 = string.byte("L") -- Q last hit
 
 --[[ Variables ]]--
+local SpellRangeQ = 600
+local SpellRangeW = 600
+local SpellRangeE = 600
+local SpellRangeR = 200 -- AOE range
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
 local killable = {} -- our enemy array where stored if people are killable
 local waittxt = {} -- prevents UI lags, all credits to Dekaron
 local QREADY, WREADY, EREADY, RREADY, DFGReady, HXGReady, SEReady, IGNITEReady = false, false, false, false, false, false, false, false -- item/ignite cooldown
 local DFGSlot, HXGSlot, SESlot, SHEENSlot, TRINITYSlot, LICHBANESlot = nil, nil, nil, nil, nil, nil -- item slots
-local enemyMinions = minionManager(MINION_ENEMY, myHero:GetSpellData(_Q).range, player, MINION_SORT_HEALTH_ASC)
 
 --[[ Core ]]--
 function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, HK1) -- harass
 	AutoCarry.PluginMenu:addParam("cage", "Cage nearest enemy", SCRIPT_PARAM_ONKEYDOWN, false, HK2) -- cage
 	AutoCarry.PluginMenu:addParam("jungle", "Jungle clearing", SCRIPT_PARAM_ONKEYTOGGLE, false, HK3) -- jungle clearing
+	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONKEYTOGGLE, false, HK4) -- Last hit with Q
 
 	-- Settings
 	AutoCarry.PluginMenu:addParam("lcSkills", "Use Skills with Lane Clear mode", SCRIPT_PARAM_ONOFF, true) -- spamming q/w/e on the minions while lane clearing
@@ -30,7 +35,6 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("hwE", "Harass with E", SCRIPT_PARAM_ONOFF, true) -- Harass with E
 	AutoCarry.PluginMenu:addParam("hwW", "Harass with W", SCRIPT_PARAM_ONOFF, false) -- Harass with W
 	AutoCarry.PluginMenu:addParam("aSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true) -- auto level skills
-	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONOFF, true) -- Last hit with Q
 	AutoCarry.PluginMenu:addParam("lhQM", "Last hit until Mana", SCRIPT_PARAM_SLICE, 50, 0, 100, 2)
 	AutoCarry.PluginMenu:addParam("ks", "KS with all Skills", SCRIPT_PARAM_ONOFF, true) -- KS with Q
 
@@ -41,6 +45,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:permaShow("harass")
 	AutoCarry.PluginMenu:permaShow("cage")
 	AutoCarry.PluginMenu:permaShow("jungle")
+	AutoCarry.PluginMenu:permaShow("lhQ")
 
 	if AutoCarry.PluginMenu.aSkills then -- setup the skill autolevel
 		autoLevelSetSequence(levelSequence)
@@ -51,7 +56,7 @@ function PluginOnLoad()
 	
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
-	AutoCarry.SkillsCrosshair.range = myHero:GetSpellData(_E).range
+	AutoCarry.SkillsCrosshair.range = SpellRangeQ
 end
 
 function PluginOnTick()
@@ -68,7 +73,7 @@ function PluginOnTick()
 		if AutoCarry.PluginMenu.lcSkills and AutoCarry.MainMenu.LaneClear then LaneClear() end -- spamming q/w/e on the minions while lane clearing
 		if AutoCarry.MainMenu.LastHit and AutoCarry.PluginMenu.jungle then JungleSteal() end -- last hit the jungle mobs
 		if AutoCarry.MainMenu.LaneClear and AutoCarry.PluginMenu.jungle then JungleClear() end -- kill jungle mobs with abilities
-		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage or AutoCarry.PluginMenu.jungle) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
+		if AutoCarry.PluginMenu.lhQ and not (AutoCarry.MainMenu.AutoCarry or AutoCarry.PluginMenu.harass or AutoCarry.PluginMenu.cage) and (((myHero.mana/myHero.maxMana)*100) >= AutoCarry.PluginMenu.lhQM) then QLastHit() end -- Q last hit
 	end
 end
 
@@ -113,15 +118,15 @@ function PluginOnDraw()
 end
 
 function PluginOnProcessSpell(unit, spell)
-	if ValidTarget(unit, myHero:GetSpellData(_W).range) and UnderTurret(unit, false) and GetDistance(spell.endPos, myHero) < 10 and WREADY then CastSpell(_W, unit) end -- Thanks to Apple
+	if ValidTarget(unit, SpellRangeW) and unit.type == "obj_AI_Hero" and UnderTurret(unit, false) and GetDistance(spell.endPos, myHero) < 10 and WREADY then CastSpell(_W, unit) end -- Thanks to Apple
 end
 
 function KS() -- get the kills
 	for i=1, heroManager.iCount do
 		local killableEnemy = heroManager:GetHero(i)
-		if ValidTarget(killableEnemy,myHero:GetSpellData(_Q).range) and QREADY and (getDmg("Q", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_Q, killableEnemy) end
-		if ValidTarget(killableEnemy, myHero:GetSpellData(_E).range) and EREADY and (getDmg("E", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_E, killableEnemy) end
-		if ValidTarget(killableEnemy, myHero:GetSpellData(_W).range) and WREADY and (getDmg("W", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_W, killableEnemy) end
+		if ValidTarget(killableEnemy,SpellRangeQ) and QREADY and (getDmg("Q", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_Q, killableEnemy) end
+		if ValidTarget(killableEnemy, SpellRangeE) and EREADY and (getDmg("E", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_E, killableEnemy) end
+		if ValidTarget(killableEnemy, SpellRangeW) and WREADY and (getDmg("W", killableEnemy, myHero) >= killableEnemy.health) then CastSpell(_W, killableEnemy) end
 	end
 end
 
@@ -131,6 +136,8 @@ function FullCombo()
 	local calcenemy = 1
 
 	if not ValidTarget(target) then return true end
+
+	AutoCarry.CanAttack = false
 
 	for i=1, heroManager.iCount do
     	local Unit = heroManager:GetHero(i)
@@ -152,42 +159,49 @@ function FullCombo()
     end
 
     if cdr <= 20 then
-    	if ValidTarget(target, myHero:GetSpellData(_Q).range) and QREADY then CastSpell(_Q, target) end
-    	if ValidTarget(target, myHero:GetSpellData(_W).range) and WREADY then CastSpell(_W, target) end
-    	if ValidTarget(target, myHero:GetSpellData(_E).range) and EREADY then CastSpell(_E, target) end
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+    	if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
     	UseUlti(target)
     elseif cdr > 20 and cdr < 30 then
-    	if ValidTarget(target, myHero:GetSpellData(_Q).range) and QREADY then CastSpell(_Q, target) end
-    	if ValidTarget(target, myHero:GetSpellData(_E).range) and EREADY then CastSpell(_E, target) end
-    	if ValidTarget(target, myHero:GetSpellData(_W).range) and WREADY then CastSpell(_W, target) end
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
+    	if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
     	UseUlti(target)
     else
-    	if ValidTarget(target, myHero:GetSpellData(_Q).range) and QREADY then CastSpell(_Q, target) end
+    	if ValidTarget(target, SpellRangeQ) and QREADY then CastSpell(_Q, target) end
     	UseUlti(target)
-		if ValidTarget(target, myHero:GetSpellData(_W).range) and WREADY then CastSpell(_W, target) end
-		if ValidTarget(target, myHero:GetSpellData(_E).range) and EREADY then CastSpell(_E, target) end
+		if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
+		if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
 	end
+
+	AutoCarry.CanAttack = true
 end
 
 function Harass()
 	local target = AutoCarry.GetAttackTarget(true)
 	if ValidTarget(target) then
-		if AutoCarry.PluginMenu.hwQ and QREADY and (GetDistance(target) <= myHero:GetSpellData(_Q).range) then CastSpell(_Q, target) end
-		if AutoCarry.PluginMenu.hwW and WREADY and (GetDistance(target) <= myHero:GetSpellData(_W).range) then CastSpell(_W, target) end
-		if AutoCarry.PluginMenu.hwE and EREADY and (GetDistance(target) <= myHero:GetSpellData(_E).range) then CastSpell(_E, target) end
+		if AutoCarry.PluginMenu.hwQ and QREADY and (GetDistance(target) <= SpellRangeQ) then CastSpell(_Q, target) end
+		if AutoCarry.PluginMenu.hwW and WREADY and (GetDistance(target) <= SpellRangeW) then CastSpell(_W, target) end
+		if AutoCarry.PluginMenu.hwE and EREADY and (GetDistance(target) <= SpellRangeE) then CastSpell(_E, target) end
 	end
-	myHero:MoveTo(mousePos.x, mousePos.z)
+	
+	if not (AutoCarry.MainMenu.LastHit or AutoCarry.MainMenu.MixedMode) then myHero:MoveTo(mousePos.x, mousePos.z) end
 end
 
 function CageNearestEnemy()
 	local NearestEnemy = nil
-	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy) and NearestEnemy == nil or GetDistance(enemy) < GetDistance(NearestEnemy) then
+	for _, enemy in pairs(AutoCarry.EnemyTable) do
+		if NearestEnemy and NearestEnemy.valid and enemy and enemy.valid then
+			if GetDistance(enemy) < GetDistance(NearestEnemy) then
+				NearestEnemy = enemy
+			end
+		else
 			NearestEnemy = enemy
 		end
 	end
 
-	if myHero:GetDistance(NearestEnemy) <= myHero:GetSpellData(_W).range then CastSpell(_W, NearestEnemy) end -- Cage him
+	if ValidTarget(NearestEnemy, SpellRangeW) then CastSpell(_W, NearestEnemy) end -- Cage him
 end
 
 function JungleClear()
@@ -197,6 +211,7 @@ function JungleClear()
 		if ValidTarget(mob) then
  			if mob.name == "TT_Spiderboss7.1.1"
 			or mob.name == "Worm12.1.1"
+			or mob.name == "Dragon6.1.1"
 			or mob.name == "AncientGolem1.1.1"
 			or mob.name == "AncientGolem7.1.1"
 			or mob.name == "LizardElder4.1.1"
@@ -220,35 +235,33 @@ function JungleClear()
 	end
 
 	if ValidTarget(Target) then
-		if myHero:GetDistance(Target) <= myHero:GetSpellData(_Q).range then CastSpell(_Q, Target) end
-		if myHero:GetDistance(Target) <= myHero:GetSpellData(_W).range then CastSpell(_W, Target) end
-		if myHero:GetDistance(Target) <= myHero:GetSpellData(_E).range then CastSpell(_E, Target) end
+		if myHero:GetDistance(Target) <= SpellRangeQ then CastSpell(_Q, Target) end
+		if myHero:GetDistance(Target) <= SpellRangeW then CastSpell(_W, Target) end
+		if myHero:GetDistance(Target) <= SpellRangeE then CastSpell(_E, Target) end
 	end
 end
 
 function JungleSteal()
 	for _, mob in pairs(AutoCarry.GetJungleMobs()) do
-		if ValidTarget(mob,myHero:GetSpellData(_Q).range) and QREADY and (getDmg("Q", mob, myHero) >= mob.health) then CastSpell(_Q, mob) end
-		if ValidTarget(mob, myHero:GetSpellData(_E).range) and EREADY and (getDmg("E", mob, myHero) >= mob.health) then CastSpell(_E, mob) end
-		if ValidTarget(mob, myHero:GetSpellData(_W).range) and WREADY and (getDmg("W", mob, myHero) >= mob.health) then CastSpell(_W, mob) end
+		if ValidTarget(mob, SpellRangeQ) and QREADY and (getDmg("Q", mob, myHero) >= mob.health) then CastSpell(_Q, mob) end
+		if ValidTarget(mob, SpellRangeE) and EREADY and (getDmg("E", mob, myHero) >= mob.health) then CastSpell(_E, mob) end
+		if ValidTarget(mob, SpellRangeW) and WREADY and (getDmg("W", mob, myHero) >= mob.health) then CastSpell(_W, mob) end
 	end
 end
 
 function LaneClear()
-	enemyMinions:update() -- get the newest minions
-	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
+	for index, minion in pairs(AutoCarry.EnemyMinions().objects) do -- loop through the minions
 		if ValidTarget(minion) then
-			if EREADY and (GetDistance(minion) <= myHero:GetSpellData(_E).range) then CastSpell(_E, minion) end
-			if QREADY and (GetDistance(minion) <= myHero:GetSpellData(_Q).range) then CastSpell(_Q, minion) end
-			if WREADY and (GetDistance(minion) <= myHero:GetSpellData(_W).range) then CastSpell(_W, minion) end
+			if EREADY and (GetDistance(minion) <= SpellRangeE) then CastSpell(_E, minion) end
+			if QREADY and (GetDistance(minion) <= SpellRangeQ) then CastSpell(_Q, minion) end
+			if WREADY and (GetDistance(minion) <= SpellRangeW) then CastSpell(_W, minion) end
 		end
 	end
 end
 
 function QLastHit()
-	enemyMinions:update() -- get the newest minions
-	for index, minion in pairs(enemyMinions.objects) do -- loop through the minions
-    	if ValidTarget(minion, myHero:GetSpellData(_Q).range) and QREADY then -- check if q is ready and the minion attackable
+	for index, minion in pairs(AutoCarry.EnemyMinions().objects) do -- loop through the minions
+    	if ValidTarget(minion, SpellRangeQ) and QREADY then -- check if q is ready and the minion attackable
         	if minion.health <= getDmg("Q", minion, myHero) then -- check if we do enough dmg
             	CastSpell(_Q, minion)	-- kill the minion
             end 
