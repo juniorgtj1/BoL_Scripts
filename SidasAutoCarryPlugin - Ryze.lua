@@ -8,9 +8,9 @@ local HK3 = string.byte("N") -- jungle clearing
 local HK4 = string.byte("L") -- Q last hit
 
 --[[ Variables ]]--
-local SpellRangeQ = 650 -- q range
-local SpellRangeW = 625 -- w range
-local SpellRangeE = 675 -- e range
+local SpellRangeQ = myHero:GetSpellData(_Q).range
+local SpellRangeW = myHero:GetSpellData(_W).range
+local SpellRangeE = myHero:GetSpellData(_R).range
 local SpellRangeR = 200 -- AOE range
 local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3} -- we level the spells that way, first point free
 local floattext = {"Harass him","Fight him","Kill him","Murder him"} -- text assigned to enemys
