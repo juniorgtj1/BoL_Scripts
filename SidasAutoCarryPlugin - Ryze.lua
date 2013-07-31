@@ -56,7 +56,7 @@ function PluginOnLoad()
 	
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 
-	AutoCarry.SkillsCrosshair.range = SpellRangeE
+	AutoCarry.SkillsCrosshair.range = SpellRangeQ
 end
 
 function PluginOnTick()
