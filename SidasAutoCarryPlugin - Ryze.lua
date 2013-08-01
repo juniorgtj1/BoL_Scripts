@@ -137,7 +137,7 @@ function FullCombo()
 
 	if not ValidTarget(target) then return true end
 
-	if myHero.level >= 8 and not getDmg("AD", target, myHero)*2 >= target.health then AutoCarry.CanAttack = false end
+	if myHero.level >= 8 and not getDmg("AD", target, myHero)*2 >= target.health then AutoCarry.shotFired = true end
 
 	for i=1, heroManager.iCount do
     	local Unit = heroManager:GetHero(i)
@@ -174,8 +174,6 @@ function FullCombo()
 		if ValidTarget(target, SpellRangeW) and WREADY then CastSpell(_W, target) end
 		if ValidTarget(target, SpellRangeE) and EREADY then CastSpell(_E, target) end
 	end
-
-	AutoCarry.CanAttack = true
 end
 
 function Harass()
