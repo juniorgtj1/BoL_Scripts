@@ -22,6 +22,12 @@ function PluginOnTick()
 	if AutoCarry.PluginMenu.lcQ and QReady and AutoCarry.MainMenu.LaneClear then LaneClearQ() end
 end
 
+function OnAttacked()
+	if WReady and (AutoCarry.PluginMenu.LaneClear or AutoCarry.MainMenu.AutoCarry) then
+		CastSpell(_W)
+	end
+end
+
 function KSQ()
 	for _, enemy in pairs(AutoCarry.EnemyTable) do
 		if ValidTarget(enemy, SkillQ.range) and getDmg("Q", enemy, myHero) >= enemy.health then
@@ -30,18 +36,10 @@ function KSQ()
 	end
 end
 
-function ComboW()
-	if AutoCarry.shotFired then CastSpell(_W) end
-end
-
 function ComboQ()
 	local target = AutoCarry.GetAttackTarget()
 
 	CastSkillshot(SkillQ, target)
-end
-
-function LaneClearW()
-	if AutoCarry.shotFired then CastSpell(_W) end
 end
 
 function LaneClearQ()
