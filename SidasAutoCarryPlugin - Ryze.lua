@@ -137,7 +137,7 @@ function FullCombo()
 
 	if not ValidTarget(target) then return true end
 
-	AutoCarry.CanAttack = false
+	if myHero.level >= 8 and not getDmg("AD", enemy, myHero)*2 >= target.health then AutoCarry.CanAttack = false end
 
 	for i=1, heroManager.iCount do
     	local Unit = heroManager:GetHero(i)
