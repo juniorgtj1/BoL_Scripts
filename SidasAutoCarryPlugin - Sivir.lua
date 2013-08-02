@@ -44,7 +44,7 @@ end
 
 function LaneClearQ()
 	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
-		if ValidTarget(minion, SkillQ.range) and getDmg("Q", minion. myHero) >= minion.health then
+		if ValidTarget(minion, SkillQ.range) then
 			AutoCarry.CastSkillshot(SkillQ, minion)
 		end
 	end
