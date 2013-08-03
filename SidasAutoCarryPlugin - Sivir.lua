@@ -16,9 +16,7 @@ function PluginOnTick()
 	QReady = (myHero:CanUseSpell(_Q) == READY)
 	WReady = (myHero:CanUseSpell(_W) == READY)
 	if AutoCarry.PluginMenu.ksQ and QReady then KSQ() end
-	if AutoCarry.MainMenu.AutoCarry and WReady then ComboW() end
 	if AutoCarry.PluginMenu.comboQ and QReady and AutoCarry.MainMenu.AutoCarry then ComboQ() end
-	if AutoCarry.PluginMenu.lcW and WReady and AutoCarry.MainMenu.LaneClear then LaneClearW() end
 	if AutoCarry.PluginMenu.lcQ and QReady and AutoCarry.MainMenu.LaneClear then LaneClearQ() end
 end
 
@@ -39,7 +37,7 @@ end
 function ComboQ()
 	local target = AutoCarry.GetAttackTarget()
 
-	CastSkillshot(SkillQ, target)
+	if ValidTarget(target, SkillQ.range) then CastSkillshot(SkillQ, target) end
 end
 
 function LaneClearQ()
