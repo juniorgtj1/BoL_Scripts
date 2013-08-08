@@ -2,7 +2,7 @@
 
 function OnLoad()
 	Config = scriptConfig("Enemy Range","EnemyRange")
-	Config:addParam("drawAllies", "Draw Allies", SCRIPT_PARAM_ONOFF, true)
+	Config:addParam("drawAllys", "Draw Allys", SCRIPT_PARAM_ONOFF, true)
 
 	print("Enemy Range loaded")
 end
@@ -12,7 +12,7 @@ function OnDraw()
 		DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
 	end
 
-	if not Config.drawAllies then return end
+	if not Config.drawAllys then return end
 
 	for i, unit in pairs(GetAllyHeroes()) do
 		DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
