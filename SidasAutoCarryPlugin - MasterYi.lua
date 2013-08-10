@@ -61,8 +61,8 @@ function MinionQHero()
 			if GetDistance(minion) <= 600 then
 				for _, enemy in pairs(AutoCarry.EnemyTable) do
 					if GetDistance(minion, enemy) <= RangeJump then
-					table.insert(Minions, minion)
-					MinionCount = MinionCount + 1
+						table.insert(Minions, minion)
+						MinionCount = MinionCount + 1
 					end
 				end
 			end
