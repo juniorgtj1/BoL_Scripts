@@ -43,7 +43,7 @@ function Combo()
 	if ValidTarget(Target) then
 		local Distance = GetDistance(Target)
 
-		if RReady and Distance <= RangeMeele and AutoCarry.PluginMenu.autoR then CastSpell(_R) end
+		if RReady and Distance <= RangeMeele and not TargetHaveBuff("Highlander", myHero) and AutoCarry.PluginMenu.autoR then CastSpell(_R) end
 		if EReady and ((QReady and Distance <= RangeQ) or (Distance <= RangeMeele)) then CastSpell(_E) end
 		if QReady and Distance <= RangeQ then CastSpell(_Q, Target) end
 	end
