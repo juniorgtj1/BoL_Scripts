@@ -50,6 +50,8 @@ function Combo()
 end
 
 function MinionQHero()
+	if not QReady then return end
+
     local Minions = {}
     local NearestMinion = nil
     local MinionCount = 0
