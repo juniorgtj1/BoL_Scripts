@@ -52,33 +52,34 @@ end
 function MinionQHero()
 	if not QReady then return end
 
-    local Minions = {}
-    local NearestMinion = nil
-    local MinionCount = 0
+	local Minions = {}
+	local NearestMinion = nil
+	local MinionCount = 0
  
-        for index, minion in pairs(AutoCarry.EnemyMinions().objects) do
-                if ValidTarget(minion) then
-                        if GetDistance(minion) <= 600 then
-                for _, enemy in pairs(AutoCarry.EnemyTable) do
-                    if GetDistance(minion, enemy) <= RangeJump then
-                        table.insert(Minions, minion)
-                        MinionCount = MinionCount + 1
-                    end
-                end
-            end
-                end
-        end
+	for index, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if ValidTarget(minion) then
+			if GetDistance(minion) <= 600 then
+				for _, enemy in pairs(AutoCarry.EnemyTable) do
+					if GetDistance(minion, enemy) <= RangeJump then
+					table.insert(Minions, minion)
+					MinionCount = MinionCount + 1
+					end
+				end
+			end
+		end
+	end
  
-    if MinionCount == 0 then return end
-    for _, jumpTarget in pairs(Minions) do
-        if NearestMinion and NearestMinion.valid and jumpTarget and jumpTarget.valid then
-            if GetDistance(jumpTarget) < GetDistance(NearestMinion) then
-                NearestMinion = jumpTarget
-            end
-        else
-            NearestMinion = jumpTarget
-        end
-    end
+	if MinionCount == 0 then return end
+
+	for _, jumpTarget in pairs(Minions) do
+		if NearestMinion and NearestMinion.valid and jumpTarget and jumpTarget.valid then
+			if GetDistance(jumpTarget) < GetDistance(NearestMinion) then
+				NearestMinion = jumpTarget
+			end
+		else
+			NearestMinion = jumpTarget
+		end
+	end
  
-    if ValidTarget(NearestMinion) and MinionCount <= 3 and QReady then CastSpell(_Q, NearestMinion) end
+	if ValidTarget(NearestMinion) and MinionCount <= 3 and QReady then CastSpell(_Q, NearestMinion) end
 end
