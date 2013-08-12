@@ -1,9 +1,10 @@
 local HK1 = string.byte("Y")
 local HK2 = string.byte("N")
 
-local SkillQ = { spellKey = _Q, range = 1000, speed = 1.33, delay = 250, width = 120, configName = "boomerangBlade", displayName = "Q (Boomerang Blade)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = true }
-
 local QReady, WReady = nil, nil
+local RangeQ = 1000
+
+local SkillQ = { spellKey = _Q, range = RangeQ, speed = 1.33, delay = 250, width = 120, configName = "boomerangBlade", displayName = "Q (Boomerang Blade)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = true }
 
 function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("comboQ", "Q in Combo", SCRIPT_PARAM_ONKEYTOGGLE, false, HK1)
@@ -28,7 +29,7 @@ end
 
 function KSQ()
 	for _, enemy in pairs(AutoCarry.EnemyTable) do
-		if ValidTarget(enemy, SkillQ.range) and getDmg("Q", enemy, myHero) >= enemy.health then
+		if ValidTarget(enemy, RangeQ) and getDmg("Q", enemy, myHero) >= enemy.health then
 			AutoCarry.CastSkillshot(SkillQ, enemy)
 		end
 	end
@@ -37,12 +38,12 @@ end
 function ComboQ()
 	local target = AutoCarry.GetAttackTarget()
 
-	if ValidTarget(target, SkillQ.range) then CastSkillshot(SkillQ, target) end
+	if ValidTarget(target, RangeQ) then CastSkillshot(SkillQ, target) end
 end
 
 function LaneClearQ()
 	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
-		if ValidTarget(minion, SkillQ.range) then
+		if ValidTarget(minion, RangeQ) then
 			AutoCarry.CastSkillshot(SkillQ, minion)
 		end
 	end
