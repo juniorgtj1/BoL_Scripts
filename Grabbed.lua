@@ -169,7 +169,7 @@ function CastQ(Unit)
 	local Position = QPred:GetPrediction(Unit)
 	local MinionCol = QCol:GetMinionCollision(myHero, Unit)
 
-	if not MinionCol and HitChance > Config.QHitChance/100 then
+	if not MinionCol and HitChance >= Config.QHitChance/100 then
 		if Position and RangeQ >= GetDistance(Position) then
 			CastSpell(_Q, Position.x, Position.z)
 		end
