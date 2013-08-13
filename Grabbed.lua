@@ -153,7 +153,7 @@ function Combo()
 
 	local Distance = GetDistance(ts.target)
 
-	if RangeQ >= Distance then
+	if RangeQ >= Distance and RangeAD < Distance then
 		CastQ(ts.target)
 	end
 
