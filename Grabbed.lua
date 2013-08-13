@@ -7,7 +7,6 @@ local QSpeed, QDelay, QWidth = 1800, 0.25, 120
 local IGNITESlot = nil
 local ts
 local enemyHeroes
-local enemyMinions
 local QPred
 local QCol
 local ToInterrupt = {}
@@ -73,7 +72,6 @@ function OnLoad()
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil)
 
 	enemyHeroes = GetEnemyHeroes()
-	enemyMinions = minionManager(MINION_ENEMY, RangeQ, myHero)
 
 	QPred = TargetPredictionVIP(RangeQ, QSpeed, QDelay, QWidth)
 	QCol = Collision(RangeQ, QSpeed, QDelay, QWidth)
