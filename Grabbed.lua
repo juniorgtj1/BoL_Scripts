@@ -119,7 +119,7 @@ end
 
 function CDHandler()
 	QReady = (myHero:CanUseSpell(_Q) == READY)
-	WReady= (myHero:CanUseSpell(_W) == READY)
+	WReady = (myHero:CanUseSpell(_W) == READY)
 	EReady = (myHero:CanUseSpell(_E) == READY)
 	RReady = (myHero:CanUseSpell(_R) == READY)
 	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY)
