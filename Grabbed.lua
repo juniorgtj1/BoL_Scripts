@@ -1,4 +1,5 @@
 if myHero.charName ~= "Blitzcrank" or not VIP_USER then return end
+require 'Collision'
 
 local RangeAD, RangeQ, RangeR = 175, 925, 600
 local QReady, WReady, EReady, RReady, IGNITEReady = nil, nil, nil, nil, nil
@@ -9,20 +10,63 @@ local enemyHeroes
 local enemyMinions
 local QPred
 local Col
+local ToInterrupt = {}
+local InterruptList = {
+    { charName = "Caitlyn", spellName = "CaitlynAceintheHole"},
+    { charName = "FiddleSticks", spellName = "Crowstorm"},
+    { charName = "FiddleSticks", spellName = "DrainChannel"},
+    { charName = "Galio", spellName = "GalioIdolOfDurand"},
+    { charName = "Karthus", spellName = "FallenOne"},
+    { charName = "Katarina", spellName = "KatarinaR"},
+    { charName = "Malzahar", spellName = "AlZaharNetherGrasp"},
+    { charName = "MissFortune", spellName = "MissFortuneBulletTime"},
+    { charName = "Nunu", spellName = "AbsoluteZero"},
+    { charName = "Pantheon", spellName = "Pantheon_GrandSkyfall_Jump"},
+    { charName = "Shen", spellName = "ShenStandUnited"},
+    { charName = "Urgot", spellName = "UrgotSwap2"},
+    { charName = "Varus", spellName = "VarusQ"},
+    { charName = "Warwick", spellName = "InfiniteDuress"}
+}
+local priorityTable = {
+	AP = {
+		"Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
+		"Kassadin", "Katarina", "Kayle", "Kennen", "Leblanc", "Lissandra", "Lux", "Malzahar", "Mordekaiser", "Morgana", "Nidalee", "Orianna",
+		"Rumble", "Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra", "MasterYi",
+	},
+	Support = {
+		"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean",
+	},
+ 
+	Tank = {
+		"Amumu", "Chogath", "DrMundo", "Galio", "Hecarim", "Malphite", "Maokai", "Nasus", "Rammus", "Sejuani", "Shen", "Singed", "Skarner", "Volibear",
+		"Warwick", "Yorick", "Zac",
+	},
+ 
+	AD_Carry = {
+		"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "KogMaw", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
+		"Talon", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Zed",
+	},
+ 
+	Bruiser = {
+		"Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nautilus", "Nocturne", "Olaf", "Poppy",
+		"Renekton", "Rengar", "Riven", "Shyvana", "Trundle", "Tryndamere", "Udyr", "Vi", "MonkeyKing", "XinZhao",
+	},
+}
 
 function OnLoad()
 	Config = scriptConfig("Grabbed", "Grabbed")
 	Config:addParam("combo", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 	Config:addParam("ksR", "KS with R", SCRIPT_PARAM_ONOFF, true)
+	Config:addParam("interrupt", "Interrupt with R", SCRIPT_PARAM_ONOFF, true)
+	Config:addParam("printInterrupt", "Print Interrupts", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("autoIGN", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("useW", "Use W", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("drawCol", "Draw Collision", SCRIPT_PARAM_ONOFF, true)
-	Config:addParam("drawTS", "Draw Target", SCRIPT_PARAM_ONOFF, false)
 	Config:addParam("QHitChance", "Min. Q Hit Chance", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
 	Config:permaShow("combo")
 
-	ts = TargetSelector(TARGET_LOW_HP, RangeQ, DAMAGE_MAGIC or DAMAGE_PHYSICAL)
+	ts = TargetSelector(TARGET_LOW_HP_PRIORITY, RangeQ, DAMAGE_MAGIC or DAMAGE_PHYSICAL)
 	ts.name = "Blitzcrank"
 	Config:addTS(ts)
 
@@ -33,6 +77,20 @@ function OnLoad()
 
 	QPred = TargetPredictionVIP(RangeQ, QSpeed, QDelay, QWidth)
 	QCol = Collision(RangeQ, QSpeed, QDelay, QWidth)
+
+	for _, enemy in pairs(enemyHeroes) do
+		for _, champ in pairs(InterruptList) do
+			if enemy.charName == champ.charName then
+				table.insert(ToInterrupt, champ.spellName)
+			end
+		end
+	end
+
+	if heroManager.iCount < 10 then -- brrowed from Sidas Auto Carry
+		PrintChat(" >> Too few champions to arrange priority")
+	else
+		arrangePrioritys()
+	end
 end
 
 function OnTick()
@@ -45,14 +103,20 @@ function OnTick()
 end
 
 function OnDraw()
-	if ts.target then
-		if Config.drawCol then QCol:DrawCollision(myHero, ts.target) end
+	if ts.target and Config.drawCol then QCol:DrawCollision(myHero, ts.target) end
+end
 
-		if Config.drawTS then
-			DrawText("Target: " .. ts.target.charName, 15, 100, 100, 0xFFFF0000)
-			DrawCircle(ts.target.x, ts.target.y, ts.target.z, 100, 0x00FF00)
+function OnProcessSpell(unit, spell)
+	if #ToInterrupt > 0 and Config.interrupt then
+		for _, ability in pairs(ToInterrupt) do
+			if spell.name == ability and unit.team ~= myHero.team then
+				if RangeR >= GetDistance(unit) then
+					CastSpell(_R)
+					if Config.printInterrupt then print("Tried to interrupt " .. spell.name) end
+				end
+			end
 		end
-	 end
+	end
 end
 
 function CDHandler()
@@ -99,6 +163,7 @@ function Combo()
 	if RangeAD >= Distance then
 		if EReady and Config.useE then CastSpell(_E, ts.target) end
 		if WReady and Config.useW then CastSpell(_W) end
+		myHero:Attack(ts.target)
 	end
 end
 
@@ -111,5 +176,23 @@ function CastQ(Unit)
 		if Position and RangeQ >= GetDistance(Position) then
 			CastSpell(_Q, Position.x, Position.z)
 		end
+	end
+end
+
+function SetPriority(table, hero, priority)
+	for i=1, #table, 1 do
+		if hero.charName:find(table[i]) ~= nil then
+			TS_SetHeroPriority(priority, hero.charName)
+		end
+	end
+end
+ 
+function arrangePrioritys()
+	for i, enemy in ipairs(enemyHeroes) do
+		SetPriority(priorityTable.AD_Carry, enemy, 1)
+		SetPriority(priorityTable.AP, enemy, 2)
+		SetPriority(priorityTable.Support, enemy, 3)
+		SetPriority(priorityTable.Bruiser, enemy, 4)
+		SetPriority(priorityTable.Tank, enemy, 5)
 	end
 end
