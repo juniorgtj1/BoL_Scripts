@@ -93,7 +93,6 @@ end
 
 function OnTick()
 	ts:update()
-	enemyMinions:update()
 	CDHandler()
 	if Config.autoIGN then AutoIgnite() end
 	if Config.ksR then KSR() end
