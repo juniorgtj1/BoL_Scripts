@@ -9,7 +9,7 @@ local ts
 local enemyHeroes
 local enemyMinions
 local QPred
-local Col
+local QCol
 local ToInterrupt = {}
 local InterruptList = {
     { charName = "Caitlyn", spellName = "CaitlynAceintheHole"},
