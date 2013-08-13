@@ -104,7 +104,7 @@ function OnDraw()
 end
 
 function OnProcessSpell(unit, spell)
-	if #ToInterrupt > 0 and Config.interrupt then
+	if #ToInterrupt > 0 and Config.interrupt and RReady then
 		for _, ability in pairs(ToInterrupt) do
 			if spell.name == ability and unit.team ~= myHero.team then
 				if RangeR >= GetDistance(unit) then
