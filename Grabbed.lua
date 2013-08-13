@@ -84,7 +84,7 @@ function OnLoad()
 		end
 	end
 
-	if heroManager.iCount < 10 then -- brrowed from Sidas Auto Carry
+	if heroManager.iCount < 10 then -- borrowed from Sidas Auto Carry
 		PrintChat(" >> Too few champions to arrange priority")
 	else
 		arrangePrioritys()
