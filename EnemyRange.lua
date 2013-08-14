@@ -9,12 +9,16 @@ end
 
 function OnDraw()
 	for i, unit in pairs(GetEnemyHeroes()) do
-		DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
+		if myHero.range + 500 >= GetDistance(unit) then
+			DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
+		end
 	end
 
 	if not Config.drawAllys then return end
 
 	for i, unit in pairs(GetAllyHeroes()) do
-		DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
+		if myHero.range + 500 >= GetDistance(unit) then
+			DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
+		end
 	end
 end
