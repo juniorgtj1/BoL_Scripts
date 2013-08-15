@@ -1,14 +1,18 @@
+require "AoE_Skillshot_Position"
+
 local QReady, WReady, EReady, RReady, IGNITEReady, DFGReady = nil, nil, nil, nil, nil, nil
 local IGNITESlot, DFGSlot, LIANDRYSSlot = nil, nil, nil
 local RangeQ, RangeW, RangeR, RangeR, RangeAD = 900, 900, 625, 750
-local QSpeed, QDelay, QWidth = 1603, 187, 110
+local QSpeed, QDelay, QWidth, WSpeed, WDelay, WWidth = 1603, 187, 110, 1603, 187, 110
 local SkillQ = {spellKey = _Q, range = RangeQ, speed = QSpeed, delay = QDelay, width = QWidth}
+local SkillW =  {spellKey = _W, range = RangeW, speed = QSpeed, delay = QDelay, width = QWidth}
 local floattext = {"Harass him","Fight him","Kill him","Murder him"}
 local killable = {}
 local waittxt = {}
 
 function PluginOnLoad()
-	AutoCarry.PluginMenu:addParam("draw", "Draw Circles/Text", SCRIPT_PARAM_ONOFF, false)
+	AutoCarry.PluginMenu:addParam("draw", "Draw Circles/Text", SCRIPT_PARAM_ONOFF, true)
+	AutoCarry.PluginMenu:addParam("smartW", "Smart W in Team Fights", SCRIPT_PARAM_ONOFF, true)
 
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil)
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end
@@ -18,6 +22,7 @@ end
 function PluginOnTick()
 	CDHandler()
 	DMGCalculation()
+	if AutoCarry.MainMenu.AutoCarry then Combo() end
 end
 
 function PluginOnDraw()
@@ -60,12 +65,39 @@ function PluginOnDraw()
 	end
 end
 
+function Combo()
+	local Target = AutoCarry.GetAttackTarget(true)
+	local EnemysInRange = CountEnemyHeroInRange()
+	local calcenemy = 1
+
+	if not ValidTarget(Target) then return true end
+
+	for i=1, heroManager.iCount do
+    	local Unit = heroManager:GetHero(i)
+    	if Unit.charName == Target.charName then
+    		calcenemy = i
+    	end
+   	end
+
+	if EReady then CastSpell(_E, Target) end
+	if QReady and not AutoCarry.GetCollision(SkillQ, myHero, Target) and TargetHaveBuff("Ablaze", Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
+	if WReady and AutoCarry.PluginMenu.smartW and EnemysInRange >= 2 then
+		Pos = GetAoESpellPosition(250, Target)
+		CastSpell(_W, Pos.x, Pos.z)
+	else
+		AutoCarry.CastSkillshot(SkillW, Target)
+	end
+	if RReady and TargetHaveBuff("Ablaze", Target) and (killable[calcenemy] == 2 or killable[calcenemy] == 3 or EnemysInRange >= 2) then
+		CastSpell(_R, Target)
+	end
+end
+
 function CDHandler()
 	DFGSlot, LIANDRYSSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3151)
-	QREADY = (myHero:CanUseSpell(_Q) == READY)
-	WREADY = (myHero:CanUseSpell(_W) == READY)
-	EREADY = (myHero:CanUseSpell(_E) == READY)
-	RREADY = (myHero:CanUseSpell(_R) == READY)
+	QReady = (myHero:CanUseSpell(_Q) == READY)
+	WReady = (myHero:CanUseSpell(_W) == READY)
+	EReady = (myHero:CanUseSpell(_E) == READY)
+	RReady = (myHero:CanUseSpell(_R) == READY)
 	IGNITEReady = (IGNITESlot ~= nil and myHero:CanUseSpell(IGNITESlot) == READY)
 	DFGReady = (DFGSlot ~= nil and myHero:CanUseSpell(DFGSlot) == READY)
 end
@@ -110,7 +142,6 @@ function DMGCalculation()
 			end
 
 			if RReady then
-				combo1 = combo1 + RDamage
 				combo2 = combo2 + RDamage
 				combo3 = combo3 + RDamage
 				mana = mana + myHero:GetSpellData(_R).mana
