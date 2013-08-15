@@ -3,7 +3,7 @@ require "AoE_Skillshot_Position"
 local QReady, WReady, EReady, RReady, IGNITEReady, DFGReady = nil, nil, nil, nil, nil, nil
 local IGNITESlot, DFGSlot, LIANDRYSSlot = nil, nil, nil
 local RangeQ, RangeW, RangeR, RangeR, RangeAD = 900, 900, 625, 750
-local QSpeed, QDelay, QWidth, WSpeed, WDelay, WWidth = 1603, 187, 110, 1603, 187, 110
+local QSpeed, QDelay, QWidth, WSpeed, WDelay, WWidth = 1200, 180, 80, 20, 0.5, 0
 local SkillQ = {spellKey = _Q, range = RangeQ, speed = QSpeed, delay = QDelay, width = QWidth}
 local SkillW =  {spellKey = _W, range = RangeW, speed = QSpeed, delay = QDelay, width = QWidth}
 local floattext = {"Harass him","Fight him","Kill him","Murder him"}
@@ -69,6 +69,7 @@ function Combo()
 	local Target = AutoCarry.GetAttackTarget(true)
 	local EnemysInRange = CountEnemyHeroInRange()
 	local calcenemy = 1
+	local Blazed = false
 
 	if not ValidTarget(Target) then return true end
 
@@ -79,15 +80,19 @@ function Combo()
     	end
    	end
 
+   	if TargetHaveParticle("BrandBlaze_hotfoot.troy", Target, RangeQ) then
+   		Blazed = true
+   	end
+
 	if EReady then CastSpell(_E, Target) end
-	if QReady and not AutoCarry.GetCollision(SkillQ, myHero, Target) and TargetHaveBuff("Ablaze", Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
+	if QReady and Blazed and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
 	if WReady and AutoCarry.PluginMenu.smartW and EnemysInRange >= 2 then
 		Pos = GetAoESpellPosition(250, Target)
 		CastSpell(_W, Pos.x, Pos.z)
 	else
 		AutoCarry.CastSkillshot(SkillW, Target)
 	end
-	if RReady and TargetHaveBuff("Ablaze", Target) and (killable[calcenemy] == 2 or killable[calcenemy] == 3 or EnemysInRange >= 2) then
+	if RReady and Blazed and (killable[calcenemy] == 2 or killable[calcenemy] == 3 or EnemysInRange >= 2) then
 		CastSpell(_R, Target)
 	end
 end
