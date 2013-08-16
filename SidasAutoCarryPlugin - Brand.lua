@@ -13,6 +13,7 @@ local waittxt = {}
 function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("draw", "Draw Circles/Text", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("smartW", "Smart W in Team Fights", SCRIPT_PARAM_ONOFF, true)
+	AutoCarry.PluginMenu:addParam("ks", "Ks with Q/W/E", SCRIPT_PARAM_ONOFF, true)
 
 	IGNITESlot = ((myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil)
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end
@@ -22,6 +23,7 @@ end
 function PluginOnTick()
 	CDHandler()
 	DMGCalculation()
+	if AutoCarry.PluginMenu.ks then KS() end
 	if AutoCarry.MainMenu.AutoCarry then Combo() end
 end
 
@@ -65,37 +67,48 @@ function PluginOnDraw()
 	end
 end
 
+function KS()
+	for _, enemy in pairs(AutoCarry.EnemyTable) do
+		if ValidTarget(enemy) then
+			local Distance = GetDistance(enemy)
+			if EReady and getDmg("E", enemy, myHero) >= enemy.health and RangeE >= Distance then CastSpell(_E, enemy) end
+			if WReady and getDmg("W", enemy, myHero) >= enemy.health and RangeW >= Distance then AutoCarry.CastSkillshot(SkillW, enemy) end
+			if QReady and getDmg("Q", enemy, myHero) >= enemy.health and RangeQ >= Distance and not AutoCarry.GetCollision(SkillQ, myHero, enemy) then AutoCarry.CastSkillshot(SkillQ, enemy) end
+		end
+	end
+end
+
 function Combo()
 	local Target = AutoCarry.GetAttackTarget(true)
 	local EnemysInRange = CountEnemyHeroInRange()
 	local calcenemy = 1
 	local Blazed = false
 
-	if not ValidTarget(Target) then return true end
+	if not ValidTarget(Target) then return end
 
 	for i=1, heroManager.iCount do
-    	local Unit = heroManager:GetHero(i)
-    	if Unit.charName == Target.charName then
-    		calcenemy = i
-    	end
-   	end
+		local Unit = heroManager:GetHero(i)
+		if Unit.charName == Target.charName then
+			calcenemy = i
+		end
+	end
 
-   	if TargetHaveParticle("BrandBlaze_hotfoot.troy", Target, RangeQ) then
-   		Blazed = true
-   	end
+	if TargetHaveParticle("BrandBlaze_hotfoot.troy", Target, RangeQ) then
+		Blazed = true
+	end
 
-   	if EnemysInRange >= 3 then
-   		if WReady and AutoCarry.PluginMenu.smartW then
-   			Pos = GetAoESpellPosition(250, Target)
-   			CastSpell(_W, Pos.x, Pos.z)
-   		else
-   			AutoCarry.CastSkillshot(SkillW, Target)
-   		end
-   		if EReady and Blazed then CastSpell(_E, Target) end
-   		if QReady and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
-   		if RReady and Blazed then CastSpell(_R, Target) end
-   	elseif EnemysInRange >= 2
-   		if WReady and AutoCarry.PluginMenu.smartW then
+	if EnemysInRange >= 3 then
+		if WReady and AutoCarry.PluginMenu.smartW then
+			Pos = GetAoESpellPosition(250, Target)
+			CastSpell(_W, Pos.x, Pos.z)
+		else
+			AutoCarry.CastSkillshot(SkillW, Target)
+		end
+		if EReady and Blazed then CastSpell(_E, Target) end
+		if QReady and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
+		if RReady and Blazed then CastSpell(_R, Target) end
+	elseif EnemysInRange >= 2
+		if WReady and AutoCarry.PluginMenu.smartW then
 			Pos = GetAoESpellPosition(250, Target)
 			CastSpell(_W, Pos.x, Pos.z)
 		else
@@ -124,10 +137,10 @@ end
 
 function DMGCalculation()
 	for i=1, heroManager.iCount do
-        local Unit = heroManager:GetHero(i)
-        if ValidTarget(Unit) then
-        	local DFGDamage, LIANDRYSDamage, IGNITEDamage = 0, 0, 0
-        	local QDamage = getDmg("Q",Unit,myHero)
+		local Unit = heroManager:GetHero(i)
+		if ValidTarget(Unit) then
+			local DFGDamage, LIANDRYSDamage, IGNITEDamage = 0, 0, 0
+			local QDamage = getDmg("Q",Unit,myHero)
 			local WDamage = getDmg("W",Unit,myHero)
 			local EDamage = getDmg("E",Unit,myHero)
 			local RDamage = getDmg("R",Unit,myHero)
@@ -189,6 +202,6 @@ function DMGCalculation()
 			if (combo1 >= Unit.health) and (myHero.mana >= mana) then
 				killable[i] = 4
 			end
+		end
 	end
-end
 end
