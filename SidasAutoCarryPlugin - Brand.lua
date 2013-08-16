@@ -84,16 +84,31 @@ function Combo()
    		Blazed = true
    	end
 
-	if EReady then CastSpell(_E, Target) end
-	if QReady and Blazed and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
-	if WReady and AutoCarry.PluginMenu.smartW and EnemysInRange >= 2 then
-		Pos = GetAoESpellPosition(250, Target)
-		CastSpell(_W, Pos.x, Pos.z)
+   	if EnemysInRange >= 3 then
+   		if WReady and AutoCarry.PluginMenu.smartW then
+   			Pos = GetAoESpellPosition(250, Target)
+   			CastSpell(_W, Pos.x, Pos.z)
+   		else
+   			AutoCarry.CastSkillshot(SkillW, Target)
+   		end
+   		if EReady and Blazed then CastSpell(_E, Target) end
+   		if QReady and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
+   		if RReady and Blazed then CastSpell(_R, Target) end
+   	elseif EnemysInRange >= 2
+   		if WReady and AutoCarry.PluginMenu.smartW then
+			Pos = GetAoESpellPosition(250, Target)
+			CastSpell(_W, Pos.x, Pos.z)
+		else
+			AutoCarry.CastSkillshot(SkillW, Target)
+		end
+		if QReady and Blazed and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
+		if EReady then CastSpell(_E, Target) end
+		if RReady and Blazed then CastSpell(_R, Target) end
 	else
-		AutoCarry.CastSkillshot(SkillW, Target)
-	end
-	if RReady and Blazed and (killable[calcenemy] == 2 or killable[calcenemy] == 3 or EnemysInRange >= 2) then
-		CastSpell(_R, Target)
+		if EReady then CastSpell(_E, Target) end
+		if QReady and Blazed and not AutoCarry.GetCollision(SkillQ, myHero, Target) then AutoCarry.CastSkillshot(SkillQ, Target) end
+		if WReady then AutoCarry.CastSkillshot(SkillW, Target) end
+		if RReady and Blazed and (killable[calcenemy] == 2 or killable[calcenemy] == 3) then CastSpell(_R, Target) end
 	end
 end
 
