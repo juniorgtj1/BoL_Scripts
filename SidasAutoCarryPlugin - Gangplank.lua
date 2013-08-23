@@ -98,7 +98,7 @@ function smartUltimate()
 	for _, enemy in pairs(EnemyTable) do
 		if ValidTarget(enemy) and (enemy.health/enemy.maxHealth) <= 0.2 then
 			for _, ally in pairs(AllyTable) do
-				if GetDistance(enemy, ally) <= RangeR and (ally.health/ally.maxHealth) <= 0.4 then -- add enemy count, simple function
+				if GetDistance(enemy, ally) <= RangeR then -- add enemy count, simple function
 					CastSpell(_R, enemy.x, enemy.z)
 				end
 			end
