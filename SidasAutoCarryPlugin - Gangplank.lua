@@ -9,9 +9,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("useWcc", "Use W against CC/Blind", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("useWlhp", "Use W on low HP", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("Wlr", "W Life Ratio", SCRIPT_PARAM_SLICE, 0.1, 0, 1, 2)
-	AutoCarry.PluginMenu:addParam("harassQ", "Harass with Q", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("harassE", "Harass with E", SCRIPT_PARAM_ONOFF, false)
-	AutoCarry.PluginMenu:addParam("comobQ", "Q in Combo", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("comboE", "E in Combo", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("comboR", "R in Combo", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("autoUlt", "Cast R to assist kills", SCRIPT_PARAM_ONOFF, true)
@@ -28,8 +26,8 @@ function PluginOnTick()
 	if AutoCarry.PluginMenu.autoUlt then smartUltimate() end
 	if AutoCarry.PluginMenu.farmQ and (AutoCarry.MainMenu.LastHit or AutoCarry.MainMenu.MixedMode) then QFarm() end
 	if AutoCarry.PluginMenu.lcQ and AutoCarry.MainMenu.LaneClear then QLaneClear() end
-	if (AutoCarry.PluginMenu.harassQ or AutoCarry.PluginMenu.harassE) and AutoCarry.MainMenu.MixedMode then Harass() end
-	if (AutoCarry.PluginMenu.comboQ or AutoCarry.PluginMenu.comboE or AutoCarry.PluginMenu.comboR) and AutoCarry.MainMenu.AutoCarry then Combo() end
+	if AutoCarry.PluginMenu.harassE and AutoCarry.MainMenu.MixedMode then Harass() end
+	if (AutoCarry.PluginMenu.comboE or AutoCarry.PluginMenu.comboR) and AutoCarry.MainMenu.AutoCarry then Combo() end
 end
 
 function CDHandler()
@@ -78,7 +76,6 @@ function Harass()
 
 	if ValidTarget(Target, RangeQ) then
 		if AutoCarry.PluginMenu.harassE and EReady then CastSpell(_E) end
-		if AutoCarry.PluginMenu.harassQ and QReady then CastSpell(_Q, Target) end
 	end
 end
 
@@ -88,7 +85,6 @@ function Combo()
 	if ValidTarget(Target, RangeQ) then
 		if AutoCarry.PluginMenu.comboR and RReady then CastSpell(_R, Target.x, Target.z) end
 		if AutoCarry.PluginMenu.comboE and EReady then CastSpell(_E) end
-		if AutoCarry.PluginMenu.comboQ and QReady then CastSpell(_Q, Target) end
 	end
 end
 
