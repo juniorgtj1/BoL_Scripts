@@ -42,7 +42,7 @@ local priorityTable = {
 	},
  
 	AD_Carry = {
-		"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "KogMaw", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
+		"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "KogMaw", "Lucian","MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
 		"Talon", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Zed",
 	},
  
