@@ -122,7 +122,7 @@ function CastW()
 		local Ally = allyTable[i]
 
 		if LowestHealth and LowestHealth.valid and Ally and Ally.valid then
-			if RangeW >= GetDistance(Ally) and (Ally.health + HealAmount) <= Ally.maxHealth then
+			if Ally.health < LowestHealth.health and RangeW >= myHero:GetDistance(Ally) and (Ally.health + HealAmount) <= Ally.maxHealth then
 				LowestHealth = Ally
 			end
 		else
@@ -130,7 +130,7 @@ function CastW()
 		end
 	end
 
-	if LowestHealth and LowestHealth.valid and RangeW >= GetDistance(LowestHealth) and (LowestHealth.health + HealAmount) <= LowestHealth.maxHealth then
+	if LowestHealth and LowestHealth.valid and RangeW >= myHero:GetDistance(LowestHealth) and (LowestHealth.health + HealAmount) <= LowestHealth.maxHealth then
 		CastSpell(_W, LowestHealth)
 	end
 end
@@ -156,7 +156,7 @@ function CastE()
 		local Ally = allyTable[i]
 
 		if LowestMana and LowestMana.valid and Ally and Ally.valid then
-			if Ally.mana < LowestMana.mana and RangeE >= GetDistance(Ally) and myHero.networkID ~= Ally.networkID then
+			if Ally.mana < LowestMana.mana and RangeE >= myHero:GetDistance(Ally) and myHero.networkID ~= Ally.networkID then
 				LowestMana = Ally
 			end
 		else
@@ -164,7 +164,7 @@ function CastE()
 		end
 	end
 
-	if LowestMana and LowestMana.valid and RangeE >= GetDistance(LowestMana) and LowestMana.mana/LowestMana.maxMana <= Config.minEmana/100 then CastSpell(_E, LowestMana) end
+	if LowestMana and LowestMana.valid and RangeE >= myHero:GetDistance(LowestMana) and LowestMana.mana/LowestMana.maxMana <= Config.minEmana/100 then CastSpell(_E, LowestMana) end
 end
 
 function Combo()
@@ -174,8 +174,8 @@ function Combo()
 	if ValidTarget(ts.target, RangeE) then
 		if QReady then CastSpell(_Q) end
 		if EReady then CastSpell(_E, ts.target) end
-		if EXHAUSTReady and GetDistance(ts.target) <= 550 then CastSpell(EXHAUSTSlot, ts.target) end
-		if (myHero.range + GetDistance(myHero.minBBox)) >= GetDistance(ts.target) then myHero:Attack(ts.target) end
+		if EXHAUSTReady and myHero:GetDistance(ts.target) <= 550 then CastSpell(EXHAUSTSlot, ts.target) end
+		if (myHero.range + myHero:GetDistance(myHero.minBBox)) >= myHero:GetDistance(ts.target) then myHero:Attack(ts.target) end
 	end
 end
 
@@ -183,7 +183,7 @@ function OnProcessSpell(unit, spell)
 	if #ToInterrupt > 0 and Config.interrupt and EReady then
 		for _, ability in pairs(ToInterrupt) do
 			if spell.name == ability and unit.team ~= myHero.team then
-				if RangeE >= GetDistance(unit) then
+				if RangeE >= myHero:GetDistance(unit) then
 					CastSpell(_E, unit)
 					if Config.printInterrupt then print("Tried to interrupt " .. spell.name) end
 				end
