@@ -10,6 +10,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("useWlhp", "Use W on low HP", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("Wlr", "W Life Ratio", SCRIPT_PARAM_SLICE, 0.1, 0, 1, 2)
 	AutoCarry.PluginMenu:addParam("harassE", "Harass with E", SCRIPT_PARAM_ONOFF, false)
+	AutoCarry.PluginMenu:addParam("comboQ", "Q after AA in Combo/MixedMode", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("comboE", "E in Combo", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("comboR", "R in Combo", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("autoUlt", "Cast R to assist kills", SCRIPT_PARAM_ONOFF, true)
@@ -28,6 +29,16 @@ function PluginOnTick()
 	if AutoCarry.PluginMenu.lcQ and AutoCarry.MainMenu.LaneClear then QLaneClear() end
 	if AutoCarry.PluginMenu.harassE and AutoCarry.MainMenu.MixedMode then Harass() end
 	if (AutoCarry.PluginMenu.comboE or AutoCarry.PluginMenu.comboR) and AutoCarry.MainMenu.AutoCarry then Combo() end
+end
+
+function OnAttacked()
+	if AutoCarry.PluginMenu.comboQ and (AutoCarry.MainMenu.AutoCarry or AutoCarry.MainMenu.MixedMode) then
+		Target = AutoCarry.GetAttackTarget()
+
+		if ValidTarget(Target, RangeQ) and QReady then
+			CastSpell(_Q, Target)
+		end
+	end
 end
 
 function CDHandler()
