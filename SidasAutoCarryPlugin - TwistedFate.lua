@@ -46,7 +46,7 @@ function PluginOnTick()
 	PickCard()
 end
 
-function OnApplyParticle(unit, particle)
+function PluginOnApplyParticle(unit, particle)
 	if unit and unit.isMe then
 		local LastCard = "Blue"
 
