@@ -124,12 +124,12 @@ function OnFinishRecall(hero)
 end
 
 function OnDraw()
-	if RReady and PluginMenu.drawR then
+	if RReady and AutoCarry.PluginMenu.drawR then
 		DrawCircleMinimap(myHero.x, myHero.y, myHero.z, RangeR, 2, 0xCCCCCC)
 	end
 
-	if PluginMenu.drawCircle then
-		drawCircle(myHero.x, myHero.y, myHero.z, RangeQ, 0xCCCCCC)
+	if AutoCarry.PluginMenu.drawCircle then
+		DrawCircle(myHero.x, myHero.y, myHero.z, RangeQ, 0xCCCCCC)
 	end
 end
 
