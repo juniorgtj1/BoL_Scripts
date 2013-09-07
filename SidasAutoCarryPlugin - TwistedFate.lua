@@ -118,9 +118,6 @@ function PluginBonusLastHitDamage(minion)
 end
 
 function PluginOnProcessSpell(unit, spell)
-	if unit.isMe and (spell.name == "Recall" or spell.name == "RecallImproved" or spell.name == "OdinRecall") then
-		Recall = true
-	end
 	if unit.isMe and spell.name == "gate" then
 		if AutoCarry.PluginMenu.cardGoldR then
 			SelectCard = "Gold"
@@ -128,8 +125,20 @@ function PluginOnProcessSpell(unit, spell)
 	end
 end
 
-function OnFinishRecall(hero)
-	if hero.isMe then
+function OnRecall(unit, time)
+	if unit.isMe then
+		Recall = true
+	end
+end
+
+function OnAbortRecall(unit)
+	if unit.isMe then
+		Recall = false
+	end
+end
+
+function OnFinishRecall(unit)
+	if unit.isMe then
 		Recall = false
 	end
 end
