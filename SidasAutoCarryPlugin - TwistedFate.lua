@@ -156,7 +156,7 @@ function PluginOnDraw()
 end
 
 function OnGainBuff(unit, buff)
-	if unit.team ~= myHero.team and unit.type == "obj_AI_Hero" and AutoCarry.PluginMenu.castQauto and QReady and not Recall then
+	if unit.team ~= myHero.team and unit.type == "obj_AI_Hero" and AutoCarry.PluginMenu.castQauto and QReady and Recall == false then
 		 if ValidTarget(unit, RangeQ) and (buff.type == BUFF_STUN or buff.type == BUFF_ROOT or buff.type == BUFF_KNOCKUP or buff.type == BUFF_SUPPRESS) then
 		 	CastSpell(_Q, unit.x, unit.z)
 		 end
