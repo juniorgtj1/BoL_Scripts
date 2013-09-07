@@ -10,7 +10,7 @@ end
 function OnDraw()
 	for i, unit in pairs(GetEnemyHeroes()) do
 		if myHero.range + 500 >= GetDistance(unit) and not unit.dead then
-			DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
+			DrawCircle(unit.x, unit.y, unit.z, unit.range + GetDistance(unit.minBBox, unit.maxBBox),  0xFFFFFF00)
 		end
 	end
 
@@ -18,7 +18,7 @@ function OnDraw()
 
 	for i, unit in pairs(GetAllyHeroes()) do
 		if myHero.range + 500 >= GetDistance(unit) and not unit.dead then
-			DrawCircle(unit.x, unit.y, unit.z, unit.range,  0xFFFFFF00)
+			DrawCircle(unit.x, unit.y, unit.z, unit.range + GetDistance(unit.minBBox, unit.maxBBox),  0xFFFFFF00)
 		end
 	end
 end
