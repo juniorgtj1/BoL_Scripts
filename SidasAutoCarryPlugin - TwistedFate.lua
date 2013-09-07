@@ -2,8 +2,9 @@ local EnemyTable
 local SelectedCard
 local SelectCard
 local StackedDeck
-local RangeQ, RangeR = 1450, 5500
+local RangeQ, RangeR
 local NextCardTick
+local Recall
 
 function PluginOnLoad()
 	if not VIP_USER then
@@ -30,9 +31,13 @@ function PluginOnLoad()
 	SelectCard = nil
 	StackedDeck = false
 	NextCardTick = 0
+	Recall = false
+	RangeQ = myHero:GetSpellData(_Q).range
+	RangeR = myHero:GetSpellData(_R).range
 end
 
 function PluginOnTick()
+	if Recall then return end
 	CDHandler()
 	if AutoCarry.MainMenu.AutoCarry and AutoCarry.PluginMenu.cardGoldAC then
 		SelectCard = "Gold"
@@ -41,7 +46,11 @@ function PluginOnTick()
 		SelectFarmCard()
 	end
 	if AutoCarry.MainMenu.LaneClear then
-		SelectCard = "Red"
+		if (myHero.mana/myHero.maxMana)*100 >= AutoCarry.PluginMenu.cardRedMana then
+			SelectCard = "Red"
+		else
+			SelectCard = "Blue"
+		end
 	end
 	PickCard()
 end
@@ -95,10 +104,19 @@ function PluginBonusLastHitDamage(minion)
 end
 
 function PluginOnProcessSpell(unit, spell)
+	if unit.isMe and (spell.name == "Recall" or spell.name == "RecallImproved" or spell.name == "OdinRecall") then
+		Recall = true
+	end
 	if unit.isMe and spell.name == "gate" then
 		if AutoCarry.PluginMenu.cardGoldR then
 			SelectCard = "Gold"
 		end
+	end
+end
+
+function OnFinishRecall(hero)
+	if hero.isMe then
+		Recall = false
 	end
 end
 
