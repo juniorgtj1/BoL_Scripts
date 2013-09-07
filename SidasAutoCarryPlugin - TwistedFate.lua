@@ -5,6 +5,7 @@ local StackedDeck
 local RangeQ, RangeR
 local NextCardTick
 local Recall
+local QReady, WReady, RReady
 
 function PluginOnLoad()
 	if not VIP_USER then
@@ -16,6 +17,7 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:addParam("cardRed", "Select Red Card", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("Y"))
 	AutoCarry.PluginMenu:addParam("cardGold", "Select Gold Card", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("E"))
 	AutoCarry.PluginMenu:addParam("drawCircle", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
+	AutoCarry.PluginMenu:addParam("drawR", "Draw R range on minimap", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("cardGoldR", "Select Gold Card after R", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("cardGoldAC", "Select Gold Card with Auto Carry", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("cardBlueMM", "Use Blue/Red Card with Mixed Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
@@ -34,6 +36,7 @@ function PluginOnLoad()
 	Recall = false
 	RangeQ = myHero:GetSpellData(_Q).range
 	RangeR = myHero:GetSpellData(_R).range
+	QReady, WReady, RReady = false, false, false
 end
 
 function PluginOnTick()
@@ -120,6 +123,16 @@ function OnFinishRecall(hero)
 	end
 end
 
+function OnDraw()
+	if RReady and PluginMenu.drawR then
+		DrawCircleMinimap(myHero.x, myHero.y, myHero.z, RangeR, 2, 0xCCCCCC)
+	end
+
+	if PluginMenu.drawCircle then
+		drawCircle(myHero.x, myHero.y, myHero.z, RangeQ, 0xCCCCCC)
+	end
+end
+
 function OnGainBuff(unit, buff)
 	if unit.team ~= myHero.team and unit.type == "obj_AI_Hero" and AutoCarry.PluginMenu.castQauto and QReady then
 		 if ValidTarget(unit, RangeQ) and (buff.type == BUFF_STUN or buff.type == BUFF_ROOT or buff.type == BUFF_KNOCKUP or buff.type == BUFF_SUPPRESS) then
@@ -131,6 +144,7 @@ end
 function CDHandler()
 	QReady = (myHero:CanUseSpell(_Q) == READY)
 	WReady = (myHero:CanUseSpell(_W) == READY)
+	RReady = (myHero:CanUseSpell(_R) == READY)
 end
 
 function SelectFarmCard()
