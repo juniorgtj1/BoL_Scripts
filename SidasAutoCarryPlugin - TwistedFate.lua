@@ -28,9 +28,6 @@ function PluginOnLoad()
 	AutoCarry.PluginMenu:permaShow("castQauto")
 	AutoCarry.PluginMenu:permaShow("cardBlueMM")
 
-	AutoCarry.SkillsCrosshair.range = RangeQ
-	AutoCarry.OverrideCustomChampionSupport = true
-
 	EnemyTable = GetEnemyHeroes()
 	SelectedCard = nil
 	SelectCard = nil
@@ -42,6 +39,9 @@ function PluginOnLoad()
 	QReady, WReady, RReady = false, false, false
 	Sheen, Lichbane = false, false
 	SHEENSlot, LICHBANESlot = false, false
+
+	AutoCarry.SkillsCrosshair.range = RangeQ
+	AutoCarry.OverrideCustomChampionSupport = true
 end
 
 function PluginOnTick()
