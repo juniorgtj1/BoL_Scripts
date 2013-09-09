@@ -65,7 +65,7 @@ function PluginOnTick()
 			Enemy = EnemyTable[i]
 
 			if ValidTarget(Enemy, RangeQ) and not Enemy.canMove then
-				CastSpell(_Q, enemy.x, enemy.z)
+				CastSpell(_Q, Enemy.x, Enemy.z)
 			end
 		end
 	end
