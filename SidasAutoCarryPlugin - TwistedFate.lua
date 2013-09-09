@@ -10,10 +10,6 @@ local Sheen, Lichbane
 local SHEENSlot, LICHBANESlot
 
 function PluginOnLoad()
-	if not VIP_USER then
-		PrintChat("Auto Q only works as VIP")
-	end
-
 	AutoCarry.PluginMenu:addParam("castQauto", "Cast Q on stunned enemys", SCRIPT_PARAM_ONOFF, true)
 	AutoCarry.PluginMenu:addParam("cardBlue", "Select Blue Card", SCRIPT_PARAM_ONKEYDOWN, false, 226)
 	AutoCarry.PluginMenu:addParam("cardRed", "Select Red Card", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("Y"))
@@ -64,6 +60,15 @@ function PluginOnTick()
 		SelectCard = nil
 	end
 	PickCard()
+	if not VIP_USER and QReady then
+		for i=1, #EnemyTable do
+			Enemy = EnemyTable[i]
+
+			if ValidTarget(Enemy, RangeQ) and not Enemy.canMove then
+				CastSpell(_Q, enemy.x, enemy.z)
+			end
+		end
+	end
 end
 
 function PluginOnCreateObj(obj)
