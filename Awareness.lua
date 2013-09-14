@@ -155,7 +155,7 @@ function OnDeleteObj(obj)
 		for i=1, #MinionTable do
 			local Minion = MinionTable[i]
 
-			if Minion and obj.name:find(Minion.name) then
+			if Minion and Minion.name and obj.name:find(Minion.name) then
 				table.remove(MinionTable, i)
 			end
 		end
