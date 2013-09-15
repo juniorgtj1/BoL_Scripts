@@ -20,6 +20,11 @@ IMPRV: removed snidremove
 ADD: SS Pings
 ]]--
 
+--[[
+0.1.1
+FIX: Death SS
+]]--
+
 require "MapPosition"
 require "ImLib"
 if GetGame().map.index ~= 1 then return end
@@ -454,7 +459,7 @@ function TrackMissingEnemys()
 		if GetTickCount() > VisionList[Enemy.networkID]["timestamp"] + ConfigGeneral.SSTime*1000 and VisionList[Enemy.networkID]["timestamp"] ~= 0 and VisionList[Enemy.networkID]["announced"] == false then
 			if ConfigGeneral.MIAAnnounce then
 				Message.AddMassage("Miss: "..Enemy.charName.." "..VisionList[Enemy.networkID]["lane"], ColorARGB.Red)
-				if ConfigGeneral.MIAPingSS then
+				if ConfigGeneral.MIAPingSS and not Enemy.dead then
 					if ConfigGeneral.MIAPingSSOwn then
 						if VisionList[Enemy.networkID]["lane"] == GetLane(myHero) then
 							PingSignalC(VisionList[Enemy.networkID]["x"], VisionList[Enemy.networkID]["z"], Enemy.networkID, 1)
