@@ -25,6 +25,8 @@ ADD: SS Pings
 FIX: Death SS
 0.1.2
 FIX: Jungler SS
+0.1.3
+IMPRV: Submenus
 ]]--
 
 require "MapPosition"
@@ -70,34 +72,36 @@ local JungleCamps = {
 local MinionTable = {}
 
 function OnLoad()
-	ConfigGeneral = scriptConfig("[Awareness] General", "awarenessgeneral")
-	ConfigGeneral:addParam("SSTime", "Min. Time to count as missing", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
-	ConfigGeneral:addParam("MIAAnnounce", "Announce missing enemies", SCRIPT_PARAM_ONOFF, true)
+	Config = scriptConfig("Awareness", "awareness")
+
+	Config:addSubMenu("General", "general")
+	Config.general:addParam("SSTime", "Min. Time to count as missing", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
+	Config.general:addParam("MIAAnnounce", "Announce missing enemies", SCRIPT_PARAM_ONOFF, true)
 	if VIP_USER then
-		ConfigGeneral:addParam("MIAPingSS", "Ping SS enemies", SCRIPT_PARAM_ONOFF, true)
-		ConfigGeneral:addParam("MIAPingSSOwn", "Ping own lane only", SCRIPT_PARAM_ONOFF, true)
+		Config.general:addParam("MIAPingSS", "Ping SS enemies", SCRIPT_PARAM_ONOFF, true)
+		Config.general:addParam("MIAPingSSOwn", "Ping own lane only", SCRIPT_PARAM_ONOFF, true)
 	end
-	ConfigGeneral:addParam("MIAPingRE", "Ping RE enemies", SCRIPT_PARAM_ONOFF, true)
-	ConfigGeneral:addParam("MIAWarn", "Warn on multiple MIA's", SCRIPT_PARAM_ONOFF, true)
-	ConfigGeneral:addParam("WardTrack", "Track Wards", SCRIPT_PARAM_ONOFF, true)
-	ConfigGeneral:addParam("BuffCheck", "Track Buffs", SCRIPT_PARAM_ONOFF, true)
-	ConfigGeneral:addParam("VisionCheck", "Announce missing Baron/Dragon vision", SCRIPT_PARAM_ONOFF, true)
-	ConfigGeneral:addParam("AttackCheck", "Announce Baron/Dragon/Buffs losing life", SCRIPT_PARAM_ONOFF, true)
-	ConfigGeneral:addParam("TurretCheck", "Announce Turrets losing life", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("MIAPingRE", "Ping RE enemies", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("MIAWarn", "Warn on multiple MIA's", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("WardTrack", "Track Wards", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("BuffCheck", "Track Buffs", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("VisionCheck", "Announce missing Baron/Dragon vision", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("AttackCheck", "Announce Baron/Dragon/Buffs losing life", SCRIPT_PARAM_ONOFF, true)
+	Config.general:addParam("TurretCheck", "Announce Turrets losing life", SCRIPT_PARAM_ONOFF, true)
 
-	ConfigDraw = scriptConfig("[Awareness] Draw", "awarenessdraw")
-	ConfigDraw:addParam("drawTurretRangeEnemy", "Draw Turret Range (Enemy)", SCRIPT_PARAM_ONOFF, true)
-	ConfigDraw:addParam("drawTurretRangeAlly", "Draw Turret Range (Ally)", SCRIPT_PARAM_ONOFF, false)
-	ConfigDraw:addParam("drawVisionRangePlayer", "Draw Player Vision Range", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("G"))
-	ConfigDraw:addParam("drawVisionRangeMinion", "Draw Minion Vision Range", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("H"))
-	ConfigDraw:addParam("MinionVisionRadius", "Radius for Minion Vision", SCRIPT_PARAM_SLICE, 100, 100, 200, 0)
-	ConfigDraw:addParam("drawEnemyMark", "Mark Incoming Enemies", SCRIPT_PARAM_ONOFF, true)
-	ConfigDraw:addParam("drawRecall", "Draw recalling Enemies", SCRIPT_PARAM_ONOFF, true)
-	ConfigDraw:addParam("drawPossiblePosition", "Draw possible position on minimap", SCRIPT_PARAM_ONOFF, true)
-	ConfigDraw:addParam("drawJunglerPosition", "Show last jungler position", SCRIPT_PARAM_ONOFF, true)
+	Config:addSubMenu("Draw", "draw")
+	Config.draw:addParam("drawTurretRangeEnemy", "Draw Turret Range (Enemy)", SCRIPT_PARAM_ONOFF, true)
+	Config.draw:addParam("drawTurretRangeAlly", "Draw Turret Range (Ally)", SCRIPT_PARAM_ONOFF, false)
+	Config.draw:addParam("drawVisionRangePlayer", "Draw Player Vision Range", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("G"))
+	Config.draw:addParam("drawVisionRangeMinion", "Draw Minion Vision Range", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("H"))
+	Config.draw:addParam("MinionVisionRadius", "Radius for Minion Vision", SCRIPT_PARAM_SLICE, 100, 100, 200, 0)
+	Config.draw:addParam("drawEnemyMark", "Mark Incoming Enemies", SCRIPT_PARAM_ONOFF, true)
+	Config.draw:addParam("drawRecall", "Draw recalling Enemies", SCRIPT_PARAM_ONOFF, true)
+	Config.draw:addParam("drawPossiblePosition", "Draw possible position on minimap", SCRIPT_PARAM_ONOFF, true)
+	Config.draw:addParam("drawJunglerPosition", "Show last jungler position", SCRIPT_PARAM_ONOFF, true)
 
-	ConfigDraw:permaShow("drawVisionRangePlayer")
-	ConfigDraw:permaShow("drawVisionRangeMinion")
+	Config.draw:permaShow("drawVisionRangePlayer")
+	Config.draw:permaShow("drawVisionRangeMinion")
 
 	EnemyTable = GetEnemyHeroes()
 
@@ -114,20 +118,20 @@ end
 function OnTick()
 	RefreshVisionList()
 	TrackMissingEnemys()
-	if ConfigGeneral.MIAWarn then AutoWarning() end
-	if ConfigGeneral.BuffCheck then BuffChecks() end
-	if ConfigGeneral.WardTrack then RefreshWardTableAndAnnounce() end
-	if ConfigGeneral.VisionCheck then ImportantVisionCheck() end
-	if ConfigGeneral.AttackCheck then ImportantAttackCheck() end
-	if ConfigGeneral.TurretCheck then TurretLifeCheck() end
+	if Config.general.MIAWarn then AutoWarning() end
+	if Config.general.BuffCheck then BuffChecks() end
+	if Config.general.WardTrack then RefreshWardTableAndAnnounce() end
+	if Config.general.VisionCheck then ImportantVisionCheck() end
+	if Config.general.AttackCheck then ImportantAttackCheck() end
+	if Config.general.TurretCheck then TurretLifeCheck() end
 end
 
 function OnDraw()
 	DrawVision()
-	if ConfigDraw.drawRecall then DrawRecall() end
-	if ConfigDraw.drawEnemyMark then DrawEnemyMark() end
-	if ConfigDraw.drawPossiblePosition then DrawPossiblePosition() end
-	if ConfigDraw.drawJunglerPosition then DrawJunglerPosition() end
+	if Config.draw.drawRecall then DrawRecall() end
+	if Config.draw.drawEnemyMark then DrawEnemyMark() end
+	if Config.draw.drawPossiblePosition then DrawPossiblePosition() end
+	if Config.draw.drawJunglerPosition then DrawJunglerPosition() end
 end
 
 function OnProcessSpell(obj, spell)
@@ -170,7 +174,7 @@ function OnDeleteObj(obj)
 end
 
 function DrawVision()
-	if #TurretTable > 0 and (ConfigDraw.drawTurretRangeEnemy or ConfigDraw.drawTurretRangeAlly) then
+	if #TurretTable > 0 and (Config.draw.drawTurretRangeEnemy or Config.draw.drawTurretRangeAlly) then
 		for i=1, #TurretTable do
 			local Turret = TurretTable[i]["obj"]
 
@@ -180,7 +184,7 @@ function DrawVision()
 			end
 
 			if myHero:GetDistance(Turret) <= 2000 and Turret.valid then
-				if (Turret.team == myHero.team and not ConfigDraw.drawTurretRangeAlly) or (Turret.team ~= myHero.team and not ConfigDraw.drawTurretRangeEnemy) then
+				if (Turret.team == myHero.team and not Config.draw.drawTurretRangeAlly) or (Turret.team ~= myHero.team and not Config.draw.drawTurretRangeEnemy) then
 					break
 				end
 				DrawCircle(Turret.x, Turret.y, Turret.z, TurretTable[i]["range"], TurretTable[i]["color"])
@@ -188,7 +192,7 @@ function DrawVision()
 		end
 	end
 
-	if ConfigDraw.drawVisionRangePlayer then
+	if Config.draw.drawVisionRangePlayer then
 		for i=1, #EnemyTable do
 			local Enemy = EnemyTable[i]
 
@@ -198,13 +202,13 @@ function DrawVision()
 		end
 	end
 
-	if ConfigDraw.drawVisionRangeMinion then
-		DrawCircle(mousePos.x, mousePos.y, mousePos.z, ConfigDraw.MinionVisionRadius, ColorARGB.LightSeaGreen:ToARGB())
+	if Config.draw.drawVisionRangeMinion then
+		DrawCircle(mousePos.x, mousePos.y, mousePos.z, Config.draw.MinionVisionRadius, ColorARGB.LightSeaGreen:ToARGB())
 
 		for i=1, #MinionTable do
 			local Minion = MinionTable[i]
 
-			if GetDistance(Minion, mousePos) <= ConfigDraw.MinionVisionRadius and Minion.valid and Minion.visible and not Minion.dead then
+			if GetDistance(Minion, mousePos) <= Config.draw.MinionVisionRadius and Minion.valid and Minion.visible and not Minion.dead then
 				DrawCircle(Minion.x, Minion.y, Minion.z, 1200, ColorARGB.White:ToARGB())
 			end
 		end
@@ -269,7 +273,7 @@ function DrawPossiblePosition()
 
 		local Distance = ((GetTickCount()-VisionList[Enemy.networkID]["timestamp"])/1000)*Enemy.ms
 
-		if Enemy.valid then
+		if Enemy.valid and not Enemy.dead then
 			if Distance <= 5000 then
 				DrawCircleMinimap(VisionList[Enemy.networkID]["x"], VisionList[Enemy.networkID]["y"], VisionList[Enemy.networkID]["z"], Distance, 2, ColorARGB.White:ToARGB())
 			else
@@ -312,6 +316,10 @@ function BuffChecks()
 
 	for i=1,heroManager.iCount,1 do
 		local Unit = heroManager:getHero(i)
+
+		if Unit.isMe then
+			break
+		end
 
 		for j=1,Unit.buffCount do
 			local Buff = Unit:getBuff(j)
@@ -458,11 +466,11 @@ function TrackMissingEnemys()
 	for i=1, #EnemyTable do
 		local Enemy = EnemyTable[i]
 
-		if GetTickCount() > VisionList[Enemy.networkID]["timestamp"] + ConfigGeneral.SSTime*1000 and VisionList[Enemy.networkID]["timestamp"] ~= 0 and VisionList[Enemy.networkID]["announced"] == false then
-			if ConfigGeneral.MIAAnnounce then
+		if GetTickCount() > VisionList[Enemy.networkID]["timestamp"] + Config.general.SSTime*1000 and VisionList[Enemy.networkID]["timestamp"] ~= 0 and VisionList[Enemy.networkID]["announced"] == false then
+			if Config.general.MIAAnnounce and not Enemy.dead and not (EnemyJungler and Enemy.networkID == EnemyJungler.networkID) then
 				Message.AddMassage("Miss: "..Enemy.charName.." "..VisionList[Enemy.networkID]["lane"], ColorARGB.Red)
-				if ConfigGeneral.MIAPingSS and not Enemy.dead and not Enemy.networkID == EnemyJungler.networkID then
-					if ConfigGeneral.MIAPingSSOwn then
+				if Config.general.MIAPingSS then
+					if Config.general.MIAPingSSOwn then
 						if VisionList[Enemy.networkID]["lane"] == GetLane(myHero) then
 							PingSignalC(VisionList[Enemy.networkID]["x"], VisionList[Enemy.networkID]["z"], Enemy.networkID, 1)
 						end
@@ -482,13 +490,14 @@ function TrackMissingEnemys()
 
 			if Enemy and Enemy.dead then
 				table.insert(DeathTable, Enemy)
+				VisionList[Enemy.networkID]["lane"] = "Dead"
 				table.remove(MissTable, i)
 				break
 			end
 
 			if Enemy and Enemy.visible then
 				Message.AddMassage("Re: "..Enemy.charName.." "..GetLane(Enemy), ColorARGB.White)
-				if ConfigGeneral.MIAPingRE then
+				if Config.general.MIAPingRE then
 					PingSignal(0, Enemy.x, Enemy.y, Enemy.z, PING_NORMAL)
 				end
 				table.insert(FatCircleTable, {["obj"] = Enemy, ["timestamp"] = CurrentTick, ["announced"] = false})
@@ -504,7 +513,7 @@ function TrackMissingEnemys()
 
 			if Enemy and Enemy.visible then
 				Message.AddMassage("Alive and Re: "..Enemy.charName.." "..GetLane(Enemy), ColorARGB.White)
-				if ConfigGeneral.MIAPingRE then
+				if Config.general.MIAPingRE then
 					PingSignal(0, Enemy.x, Enemy.y, Enemy.z, PING_NORMAL)
 				end
 				table.remove(DeathTable, i)
