@@ -1,8 +1,14 @@
+local HK1 = string.byte("L")
+
+---> Do not touch anything below here <---
 local QReady, WReady, EReady, RReady
 local QRange
 local LastSpell
 
 function PluginOnLoad()
+	AutoCarry.PluginMenu:addParam("lhQ", "Last hit with Q", SCRIPT_PARAM_ONKEYTOGGLE, false, HK1)
+	AutoCarry.PluginMenu:permaShow("lhQ")
+
 	AutoCarry.SkillsCrosshair.range = 600
 	QReady, WReady, EReady, RReady = false, false, false, false
 	QRange = 600
@@ -11,20 +17,20 @@ end
 function PluginOnTick()
 	CDHandler()
 	if AutoCarry.MainMenu.AutoCarry then Combo() end
-	if AutoCarry.MainMenu.LastHit or AutoCarry.MainMenu.MixedMode then Farm() end
+	if AutoCarry.MainMenu.LastHit or AutoCarry.MainMenu.MixedMode and AutoCarry.PluginMenu.lhQ then Farm() end
 end
 
 function Combo()
 	Target = AutoCarry.GetAttackTarget(true)
 
-	if myHero.level >= 8 then
-		AutoCarry.CanAttack = false
-	end
-
 	if ValidTarget(Target, QRange) then
 		local EnemysInRange = CountEnemyHeroInRange(QRange)
 		local TotalDamage = 0
 		local Distance = myHero:GetDistance(Target)
+
+		if Target.armor > 80 then
+			AutoCarry.CanAttack = false
+		end
 
 		if getDmg("AD", myHero, Target)*2 >= Target.health or (not QReady and not WReady and not EReady) and myHero:GetDistance(Target) <= QRange-50 then
 			AutoCarry.CanAttack = true
@@ -90,3 +96,6 @@ function CDHandler()
 	EReady = (myHero:CanUseSpell(_E) == READY)
 	RReady = (myHero:CanUseSpell(_R) == READY)
 end
+
+--UPDATEURL=
+--HASH=EE31C1E16B4B41C635478FFA43B2ADDF
