@@ -21,7 +21,7 @@ function OnTick()
 end
 
 function OnGainBuff(unit, buff)
-	if unit.isMe and buff.valid and ZReady then
+	if unit.isMe and buff and ZReady then
 		for _, Buff in pairs(BuffTable) do
 			if Buff.spellName == buff.name then
 				if Buff.onApply then
