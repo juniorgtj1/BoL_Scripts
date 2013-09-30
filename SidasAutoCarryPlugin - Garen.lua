@@ -21,10 +21,10 @@ function PluginOnTick()
 	if AutoCarry.PluginMenu.aIGN then AutoIgnite() end
 end
 
-function PluginOnProcessSpell(unit, spell)
-   if unit.isMe and spell.name == myHero:GetSpellData(_Q).name then
-      if AutoCarry.PluginMenu.aE and EReady then CastSpell(_E) end
-   end
+function PluginOnAnimation(object, animation)
+	if object.isMe and animation == "Spell1" then
+		if AutoCarry.PluginMenu.aE and EReady then CastSpell(_E) end
+	end
 end
 
 function CastR()
