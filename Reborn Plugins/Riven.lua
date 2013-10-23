@@ -55,13 +55,13 @@ function Plugin:Combo()
 				CastSpell(_R, Target.x, Target.z)
 			end
 		end
-		local GPDistance = 0
+		local GCDistance = 0
 		if myHero:CanUseSpell(_Q) == READY then
-			GPDistance = 260
+			GCDistance = 260
 		elseif myHero:CanUseSpell(_W) == READY then
-			GPDistance = 250
+			GCDistance = 250
 		end
-		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GPDistance then
+		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GCDistance then
 			CastSpell(_E, Target.x, Target.z)
 		end
 		if myHero:CanUseSpell(_W) == READY and Distance <= 250 and Passive.Count < 3 then
@@ -87,9 +87,9 @@ function Plugin:Harass()
 
 	if ValidTarget(Target) then
 		local Distance = myHero:GetDistance(Target)
-		local GPDistance = (myHero:CanUseSpell(_W) == READY and 250 or 0)
+		local GCDistance = (myHero:CanUseSpell(_W) == READY and 250 or 0)
 
-		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GPDistance then
+		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GCDistance then
 			CastSpell(_E, Target.x, Target.z)
 		end
 		if myHero:CanUseSpell(_W) == READY and Distance <= 250 then
