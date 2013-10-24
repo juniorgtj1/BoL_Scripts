@@ -1,3 +1,4 @@
+require "AoE_Skillshot_Position"
 class 'Plugin'
 if myHero.charName ~= "Riven" then return end
 
@@ -46,13 +47,14 @@ function Plugin:Combo()
 	if ValidTarget(Target) then
 		local Distance = myHero:GetDistance(Target)
 		local Radius = self:GetQRadius()
+		local Position = GetAoESpellPosition(Radius, Target, 0)
 
 		if Menu.useR then
 			if not RData.Up and (Target.health/Target.maxHealth)*100 <= Menu.useRHealth and Passive.Count < 3 then
 				CastSpell(_R)
 			end
 			if RData.Up and myHero:CanUseSpell(_R) == READY and Distance <= 870 and getDmg("R", Target, myHero) >= Target.health then
-				CastSpell(_R, Target.x, Target.z)
+				CastSpell(_R, Position.x, Position.z)
 			end
 		end
 		local GCDistance = 0
@@ -61,7 +63,7 @@ function Plugin:Combo()
 		elseif myHero:CanUseSpell(_W) == READY then
 			GCDistance = 250
 		end
-		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GCDistance then
+		if myHero:CanUseSpell(_E) == READY and Menu.useE and Distance > 250 and Distance < 325 + GCDistance then
 			CastSpell(_E, Target.x, Target.z)
 		end
 		if myHero:CanUseSpell(_W) == READY and Distance <= 250 and Passive.Count < 3 then
@@ -71,12 +73,11 @@ function Plugin:Combo()
 		local enemyDirection = self:EnemyDirection(Target)
 		if enemyDirection == direction_away and Distance > 200 and myHero:CanUseSpell(_E) ~= READY and myHero:CanUseSpell(_W) ~= READY then
 			if Distance <= 260 then
-				CastSpell(_Q, Target.x, Target.z)
+				CastSpell(_Q, Position.x, Position.z)
 			end
 		else
-			if Orbwalker:IsAfterAttack() and Distance <= 260 and Passive.Count < 3 and GetTickCount() > QData.Next then
-				CastSpell(_Q, Target.x, Target.z)
-				QData.Next = Orbwalker:GetNextAttackTime()
+			if Orbwalker:IsAfterAttack() and Distance <= 260 then
+				CastSpell(_Q, Position.x, Position.z)
 			end
 		end
 	end
@@ -103,7 +104,9 @@ function Plugin:ksR()
 		for _, Enemy in pairs(Helper.EnemyTable) do
 			if ValidTarget(Enemy, 870) and getDmg("R", Enemy, myHero) >= Enemy.health then
 				if RData.Up and myHero:CanUseSpell(_R) == READY then
-					CastSpell(_R, Enemy.x, Enemy.z)
+					local Radius = self:GetQRadius()
+					local Position = GetAoESpellPosition(Radius, Enemy, 0)
+					CastSpell(_R, Position.x, Position.z)
 				else
 					CastSpell(_R)
 				end
@@ -188,6 +191,9 @@ end
 
 Menu = AutoCarry.Plugins:RegisterPlugin(Plugin(), "PQRiven")
 Menu:addParam("harass", "Harass in Mixed Mode", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("Y"))
+Menu:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("A"))
 Menu:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
 Menu:addParam("useRHealth", "Activate R at % enemy hp", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
 Menu:addParam("ksR", "KS with R", SCRIPT_PARAM_ONOFF, true)
+Menu:permaShow("harass")
+Menu:permaShow("useE")
