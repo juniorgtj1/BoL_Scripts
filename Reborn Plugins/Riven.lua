@@ -54,7 +54,7 @@ function Plugin:Combo()
 				CastSpell(_R)
 			end
 			if RData.Up and myHero:CanUseSpell(_R) == READY and Distance <= 870 and getDmg("R", Target, myHero) >= Target.health then
-				CastSpell(_R, Position.x, Position.z)
+				CastSpell(_R, Target.x, Target.z)
 			end
 		end
 		local GCDistance = 0
@@ -110,9 +110,7 @@ function Plugin:ksR()
 		for _, Enemy in pairs(Helper.EnemyTable) do
 			if ValidTarget(Enemy, 870) and getDmg("R", Enemy, myHero) >= Enemy.health then
 				if RData.Up and myHero:CanUseSpell(_R) == READY then
-					local Radius = self:GetQRadius()
-					local Position = GetAoESpellPosition(Radius, Enemy, 0)
-					CastSpell(_R, Position.x, Position.z)
+					CastSpell(_R, Enemy.x, Enemy.z)
 				else
 					CastSpell(_R)
 				end
