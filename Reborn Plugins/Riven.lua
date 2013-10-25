@@ -69,15 +69,21 @@ function Plugin:Combo()
 		if myHero:CanUseSpell(_W) == READY and Distance <= 250 and Passive.Count < 3 then
 			CastSpell(_W)
 		end
-		if QData.Next == 0 then QData.Next = Orbwalker:GetNextAttackTime() end
 		local enemyDirection = self:EnemyDirection(Target)
 		if enemyDirection == direction_away and Distance > 200 and myHero:CanUseSpell(_E) ~= READY and myHero:CanUseSpell(_W) ~= READY then
 			if Distance <= 260 then
 				CastSpell(_Q, Position.x, Position.z)
 			end
 		else
-			if Orbwalker:IsAfterAttack() and Distance <= 260 then
-				CastSpell(_Q, Position.x, Position.z)
+			if Menu.forceAA then
+				if Orbwalker:IsAfterAttack() and GetTickCount() > QData.Next and Distance <= 260 then
+					CastSpell(_Q, Position.x, Position.z)
+					QData.Next = Orbwalker:GetNextAttackTime()
+				end
+			else
+				if Orbwalker:IsAfterAttack() and Distance <= 260 then
+					CastSpell(_Q, Position.x, Position.z)
+				end
 			end
 		end
 	end
@@ -191,9 +197,11 @@ end
 
 Menu = AutoCarry.Plugins:RegisterPlugin(Plugin(), "PQRiven")
 Menu:addParam("harass", "Harass in Mixed Mode", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("Y"))
+Menu:addParam("forceAA", "Force AA in Combo", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("T"))
 Menu:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("A"))
 Menu:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
 Menu:addParam("useRHealth", "Activate R at % enemy hp", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
 Menu:addParam("ksR", "KS with R", SCRIPT_PARAM_ONOFF, true)
 Menu:permaShow("harass")
+Menu:permaShow("forceAA")
 Menu:permaShow("useE")
