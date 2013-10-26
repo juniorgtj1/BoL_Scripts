@@ -20,6 +20,7 @@ end
 function Plugin:OnTick()
 	Crosshair:SetSkillCrosshairRange(myHero.range + GetDistance(myHero.minBBox) + (self:GetQRadius()*2))
 	if myHero:CanUseSpell(_Q) ~= READY and os.clock() > QData.Last + 1 then QData.Count = 0 end
+	if Menu.ksQ then self:ksQ() end
 	if Menu.ksR then self:ksR() end
 	if Keys.AutoCarry then self:Combo() end
 	if Menu.harass and Keys.MixedMode then self:Harass() end
@@ -49,7 +50,7 @@ function Plugin:Combo()
 		local Radius = self:GetQRadius()
 		local Position = GetAoESpellPosition(Radius, Target, 0)
 
-		if Menu.useR then
+		if Menu.useRcombo then
 			if not RData.Up and (Target.health/Target.maxHealth)*100 <= Menu.useRHealth and Passive.Count < 3 then
 				CastSpell(_R)
 			end
@@ -63,7 +64,7 @@ function Plugin:Combo()
 		elseif myHero:CanUseSpell(_W) == READY then
 			GCDistance = 250
 		end
-		if myHero:CanUseSpell(_E) == READY and Menu.useE and Distance > 250 and Distance < 325 + GCDistance then
+		if myHero:CanUseSpell(_E) == READY and Menu.useEcombo and Distance > 250 and Distance < 325 + GCDistance then
 			CastSpell(_E, Target.x, Target.z)
 		end
 		if myHero:CanUseSpell(_W) == READY and Distance <= 250 and Passive.Count < 3 then
@@ -96,7 +97,7 @@ function Plugin:Harass()
 		local Distance = myHero:GetDistance(Target)
 		local GCDistance = (myHero:CanUseSpell(_W) == READY and 250 or 0)
 
-		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GCDistance then
+		if myHero:CanUseSpell(_E) == READY and Distance > 250 and Distance < 325 + GCDistance and Menu.useEharass then
 			CastSpell(_E, Target.x, Target.z)
 		end
 		if myHero:CanUseSpell(_W) == READY and Distance <= 250 then
@@ -112,8 +113,22 @@ function Plugin:ksR()
 				if RData.Up and myHero:CanUseSpell(_R) == READY then
 					CastSpell(_R, Enemy.x, Enemy.z)
 				else
-					CastSpell(_R)
+					if not Menu.ksRws then
+						CastSpell(_R)
+					end
 				end
+			end
+		end
+	end
+end
+
+function Plugin:ksQ()
+	if myHero:CanUseSpell(_Q) == READY then
+		local Radius = self:GetQRadius()
+		for _, Enemy in pairs(Helper.EnemyTable) do
+			if ValidTarget(Enemy, 260) and getDmg("Q", Enemy, myHero) >= Enemy.health then
+				local Position = GetAoESpellPosition(Radius, Enemy, 0)
+				CastSpell(_Q, Position.x, Position.z)
 			end
 		end
 	end
@@ -196,10 +211,13 @@ end
 Menu = AutoCarry.Plugins:RegisterPlugin(Plugin(), "PQRiven")
 Menu:addParam("harass", "Harass in Mixed Mode", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("Y"))
 Menu:addParam("forceAA", "Force AA in Combo", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("T"))
-Menu:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("A"))
-Menu:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
+Menu:addParam("useEcombo", "Use E in Combo", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey("A"))
+Menu:addParam("useRcombo", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
+Menu:addParam("useEharass", "Use E while Harass", SCRIPT_PARAM_ONOFF, true)
 Menu:addParam("useRHealth", "Activate R at % enemy hp", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
 Menu:addParam("ksR", "KS with R", SCRIPT_PARAM_ONOFF, true)
+Menu:addParam("ksRws", "KS only if Wind Slash is active", SCRIPT_PARAM_ONOFF, true)
+Menu:addParam("ksQ", "KS with Q", SCRIPT_PARAM_ONOFF, true)
 Menu:permaShow("harass")
 Menu:permaShow("forceAA")
-Menu:permaShow("useE")
+Menu:permaShow("useEcombo")
