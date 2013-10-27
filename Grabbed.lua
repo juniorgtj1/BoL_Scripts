@@ -1,14 +1,14 @@
 if myHero.charName ~= "Blitzcrank" or not VIP_USER then return end
 require 'Collision'
+require 'Prodiction'
 
-local RangeAD, RangeQ, RangeR = 175, 925, 600
+local RangeAD, RangeQ, RangeR = 175, 1050, 600
 local QReady, WReady, EReady, RReady, IGNITEReady = nil, nil, nil, nil, nil
-local QSpeed, QDelay, QWidth = 1800, 0.25, 120
+local QSpeed, QDelay, QWidth = 1800, 0.25, 90
 local IGNITESlot = nil
 local ts
 local enemyHeroes
-local QPred
-local QCol
+local pd, qp, QCol
 local ToInterrupt = {}
 local InterruptList = {
     { charName = "Caitlyn", spellName = "CaitlynAceintheHole"},
@@ -42,7 +42,7 @@ local priorityTable = {
 	},
  
 	AD_Carry = {
-		"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "KogMaw", "Lucian","MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
+		"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "KogMaw", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
 		"Talon", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Zed",
 	},
  
@@ -62,7 +62,6 @@ function OnLoad()
 	Config:addParam("useW", "Use W", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("drawCol", "Draw Collision", SCRIPT_PARAM_ONOFF, true)
-	Config:addParam("QHitChance", "Min. Q Hit Chance", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
 	Config:permaShow("combo")
 
 	ts = TargetSelector(TARGET_LOW_HP_PRIORITY, RangeQ, DAMAGE_MAGIC or DAMAGE_PHYSICAL)
@@ -73,8 +72,9 @@ function OnLoad()
 
 	enemyHeroes = GetEnemyHeroes()
 
-	QPred = TargetPredictionVIP(RangeQ, QSpeed, QDelay, QWidth)
+	pd = ProdictManager.GetInstance()
 	QCol = Collision(RangeQ, QSpeed, QDelay, QWidth)
+	qp = pd:AddProdictionObject(_Q, RangeQ, QSpeed, QDelay, QWidth, myHero, function(unit, pos, castSpell) if QReady and GetDistance(unit) < RangeQ then CastSpell(_Q, pos.x, pos.z) end end)
 
 	for _, enemy in pairs(enemyHeroes) do
 		for _, champ in pairs(InterruptList) do
@@ -165,14 +165,10 @@ function Combo()
 end
 
 function CastQ(Unit)
-	local HitChance = QPred:GetHitChance(Unit)
-	local Position = QPred:GetPrediction(Unit)
 	local MinionCol = QCol:GetMinionCollision(myHero, Unit)
 
-	if not MinionCol and HitChance >= Config.QHitChance/100 then
-		if Position and RangeQ >= GetDistance(Position) then
-			CastSpell(_Q, Position.x, Position.z)
-		end
+	if not MinionCol and RangeQ >= GetDistance(Unit) then
+		qp:EnableTarget(Unit, true)
 	end
 end
 
