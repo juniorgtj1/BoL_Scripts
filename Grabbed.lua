@@ -74,7 +74,7 @@ function OnLoad()
 
 	pd = ProdictManager.GetInstance()
 	QCol = Collision(RangeQ, QSpeed, QDelay, QWidth)
-	qp = pd:AddProdictionObject(_Q, RangeQ, QSpeed, QDelay, QWidth, myHero, function(unit, pos, castSpell) if QReady and GetDistance(unit) < RangeQ then CastSpell(_Q, pos.x, pos.z) end end)
+	qp = pd:AddProdictionObject(_Q, RangeQ, QSpeed, QDelay, QWidth)
 
 	for _, enemy in pairs(enemyHeroes) do
 		for _, champ in pairs(InterruptList) do
@@ -153,8 +153,8 @@ function Combo()
 
 	local Distance = GetDistance(ts.target)
 
-	if RangeQ >= Distance and RangeAD < Distance then
-		CastQ(ts.target)
+	for _, enemy in pairs(enemyHeroes) do
+		qp:GetPredictionCallBack(enemy, CastQ)
 	end
 
 	if RangeAD >= Distance then
@@ -164,11 +164,11 @@ function Combo()
 	end
 end
 
-function CastQ(Unit)
-	local MinionCol = QCol:GetMinionCollision(myHero, Unit)
+function CastQ(unit, pos, spell)
+	local MinionCol = QCol:GetMinionCollision(myHero, unit)
 
-	if not MinionCol and RangeQ >= GetDistance(Unit) then
-		qp:EnableTarget(Unit, true)
+	if not MinionCol and RangeQ >= GetDistance(unit) and QReady then
+		CastSpell(_Q, pos.x, pos.z)
 	end
 end
 
