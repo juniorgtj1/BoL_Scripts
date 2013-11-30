@@ -55,6 +55,7 @@ local priorityTable = {
 function OnLoad()
 	Config = scriptConfig("Grabbed", "Grabbed")
 	Config:addParam("combo", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+	Config:addParam("grabRnd", "Grab first enemy", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("Y"))
 	Config:addParam("ksR", "KS with R", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("interrupt", "Interrupt with R", SCRIPT_PARAM_ONOFF, true)
 	Config:addParam("printInterrupt", "Print Interrupts", SCRIPT_PARAM_ONOFF, true)
@@ -97,6 +98,11 @@ function OnTick()
 	if Config.autoIGN then AutoIgnite() end
 	if Config.ksR then KSR() end
 	if Config.combo then Combo() end
+	if Config.grabRnd then
+		for _, enemy in pairs(enemyHeroes) do
+			qp:GetPredictionCallBack(enemy, CastQ)
+		end
+	end
 end
 
 function OnDraw()
@@ -151,13 +157,9 @@ end
 function Combo()
 	if not ts.target then return end
 
-	local Distance = GetDistance(ts.target)
+	qp:GetPredictionCallBack(ts.target, CastQ)
 
-	for _, enemy in pairs(enemyHeroes) do
-		qp:GetPredictionCallBack(enemy, CastQ)
-	end
-
-	if RangeAD >= Distance then
+	if RangeAD >= GetDistance(ts.target) then
 		if EReady and Config.useE then CastSpell(_E, ts.target) end
 		if WReady and Config.useW then CastSpell(_W) end
 		myHero:Attack(ts.target)
