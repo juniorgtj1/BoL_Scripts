@@ -2,7 +2,7 @@ if myHero.charName ~= "Blitzcrank" or not VIP_USER then return end
 require 'Collision'
 require 'Prodiction'
 
-local RangeAD, RangeQ, RangeR = 175, 1050, 600
+local RangeAD, RangeQ, RangeR = 175, 1000, 600
 local QReady, WReady, EReady, RReady, IGNITEReady = nil, nil, nil, nil, nil
 local QSpeed, QDelay, QWidth = 1800, 0.25, 90
 local IGNITESlot = nil
