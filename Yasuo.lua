@@ -146,7 +146,6 @@ function OnTick()
 	CleanDebuffTable()
 	CleanKnockUpTable()
 	DamageCalculation()
-		GetFarestMinion(ts.target, 450)
 	if lastJumpMinion ~= nil and not lastJumpMinion.valid then lastJumpMinion = nil end
 	if os.clock() > QData.TS + 10 then QData.Stacks = 0 end
 	RegularKS()
