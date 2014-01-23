@@ -37,6 +37,7 @@ local InterruptList = {
 }
 local ToInterrupt = {}
 local IsRecalling = false
+local Version = 0.1
 
 function OnLoad()
 	Config = scriptConfig("[PQMailer] Yasuo", "pqyasuo")
@@ -136,7 +137,7 @@ function OnLoad()
 		PrintChat("[PQYasuo]: I will interrupt "..#ToInterrupt.." spells.")
 	end
 
-	PrintChat("[PQMailer] "..myHero.charName.. " v."..tostring(versionGOE).." loaded")
+	PrintChat("[PQMailer] "..myHero.charName.. " v."..tostring(Version).." loaded")
 end
 
 function OnTick()
