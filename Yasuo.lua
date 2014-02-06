@@ -210,7 +210,7 @@ function OnGainBuff(unit, buff)
 	if unit.team ~= myHero.team then
 		if buff.type == BUFF_KNOCKUP and unit.type:lower() == "obj_ai_hero" then
 			KnockUpTable[unit.networkID] = os.clock()
-		elseif buff.name == "YasuoDashWrapper" then
+		elseif buff.name == "yasuodashwrapperchaos" then
 			DebuffTable[unit.networkID] = os.clock()
 		end
 	end

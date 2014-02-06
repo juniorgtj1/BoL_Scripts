@@ -169,7 +169,7 @@ end
 function CastQ(unit, pos, spell)
 	local MinionCol = QCol:GetMinionCollision(myHero, unit)
 
-	if not MinionCol and RangeQ >= GetDistance(unit) and QReady then
+	if not MinionCol and RangeQ >= GetDistance(pos) and QReady then
 		CastSpell(_Q, pos.x, pos.z)
 	end
 end
