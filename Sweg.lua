@@ -1,9 +1,26 @@
+_NOTIFY_SENTENCES = {
+	['penta'] = 'PENTA FKN NOOBS! GET REKD!',
+	['quadra'] = 'NOT EVEN CLOSE LOL!'
+}
+
 function OnLoad()
 	_HANDLER = {}
 	_HANDLER.LaughBot = _LaughBot()
 	_HANDLER.GameOver = _GameOver()
 
 	PrintChat('<b><font color="#CCCCCC">Sweg by PQ loaded</b></font>')
+end
+
+function OnNotify(event, unit)
+	if unit.team == myHero.team then
+		if event:lower():find('penta') then
+			SendChat('/all ' .. _NOTIFY_SENTENCES['penta'])
+		end
+		
+		if event:lower():find('quadra') then
+			SendChat('/all ' .. _NOTIFY_SENTENCES['quadra'])
+		end
+	end
 end
 
 class('_LaughBot') -- Credits to Honda7 for the packet
