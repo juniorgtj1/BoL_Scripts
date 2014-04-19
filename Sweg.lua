@@ -1,7 +1,8 @@
 function OnLoad()
 	_HANDLER = {}
 	_HANDLER.LaughBot = _LaughBot()
-	
+	_HANDLER.GameOver = _GameOver()
+
 	PrintChat('<b><font color="#CCCCCC">Sweg by PQ loaded</b></font>')
 end
 
@@ -36,4 +37,26 @@ class('_LaughBot') -- Credits to Honda7 for the packet
 		 p:Encode1(2)
 		 p:Encode1(0)
 		 SendPacket(p)
+	end
+
+class('_GameOver')
+
+	function _GameOver:__init()
+		AddGameOverCallback(function(team) self:OnGameOver(team) end)
+	end
+
+	function _GameOver:OnGameOver(team)
+		if team == myHero.team then
+			SendChat('/all Close game, better uninstall')
+		else
+			SendChat('/all Stop hacking')
+		end
+
+		AddTickCallback(function()
+			local pos = GetEnemySpawnPos()
+
+			myHero:MoveTo(pos.x, pos.z)
+			CastSpell(SUMMONER_1, pos.x, pos.z)
+			CastSpell(SUMMONER_2, pos.x, pos.z)
+		end)
 	end
