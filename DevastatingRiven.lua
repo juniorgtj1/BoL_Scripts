@@ -59,7 +59,7 @@ end
 
 function AfterAttack(target, mode)
 	if _MENU.enabled and ValidTarget(target) then
-		if CastSpell(_Q, target.x, target.z) or CastSpell(_W) then
+		if CastSpell(_W) or CastSpell(_Q, target.x, target.z) then
 			_SOW:resetAA()
 		end
 	end
