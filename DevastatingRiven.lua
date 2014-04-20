@@ -4,7 +4,7 @@ function OnProcessSpell(object, spell)
 
 		if ValidTarget(target) then
 			if spell.name == 'RivenTriCleave' then
-				Packet('S_MOVE',{}):Send()
+				Packet('S_MOVE',{}):send()
 			end
 			if spell.name == 'RivenFengShuiEngine' or spell.name == 'rivenizunablade' then
 				if myHero:CanUseSpell(_Q) == READY then
