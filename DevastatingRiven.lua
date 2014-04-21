@@ -47,12 +47,12 @@ function OnProcessSpell(object, spell)
 				end
 			end
 			if spell.name == 'rivenizunablade' then -- _R second cast
-				if CastSpell(_Q, target.x, target.z) == false then
+				if CastSpell(_E, target.x, target.z) == false and CastQ(target) == false then
 					CastSpell(_E, target.x, target.z)
 				end
 			end
 			if spell.name == 'ItemTiamatCleave' then -- Tiamat / Hydra
-				if CastSpell(_W) == false and CastSpell(_Q, target.x, target.z) == false then
+				if CastSpell(_W) == false and CastQ(target) == false then
 					CastSpell(_E, target.x, target.z)
 				end
 			end
