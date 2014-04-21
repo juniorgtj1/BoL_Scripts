@@ -10,6 +10,7 @@ function OnLoad()
 	_SOW = SOW(VPrediction())
 	_SOW:LoadToMenu(_MENU, _TS)
 	_SOW:RegisterAfterAttackCallback(AfterAttack)
+	_SOW.Menu.Mode = 2
 
 	print('This is a test lol')
 end
@@ -36,7 +37,7 @@ function OnProcessSpell(object, spell)
 				end, 0.25 + GetLatency() / 2000)
 			end
 			if spell.name == 'RivenFeint' then -- _E
-				if CastItem(3077) == false and CastItem(3074) == false and CastSpell(_W) == false and CastSpell(_Q, target.x, target.z) == false then
+				if CastItem(3077) == false and CastItem(3074) == false and CastW() == false then
 					SendChat('/l')
 				end
 			end
@@ -60,9 +61,23 @@ function OnProcessSpell(object, spell)
 end
 
 function AfterAttack(target, mode)
-	if _MENU.enabled and ValidTarget(target) then
-		if CastSpell(_W) or CastSpell(_Q, target.x, target.z) then
-			_SOW:resetAA()
+	if _MENU.enabled then
+		CastQ(target)
+	end
+end
+
+function CastQ(target)
+	if ValidTarget(target) then
+		if CastSpell(_Q, target.x, target.z) then
+			DelayAction(function() _SOW:resetAA() end, 0.75)
+			return true
 		end
+	end
+end
+
+function CastW()
+	if CastSpell(_W) then
+		DelayAction(function() _SOW:resetAA() end, 0.5)
+		return true
 	end
 end
