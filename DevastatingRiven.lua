@@ -37,12 +37,12 @@ function OnProcessSpell(object, spell)
 				end, 0.25 + GetLatency() / 2000)
 			end
 			if spell.name == 'RivenFeint' then -- _E
-				if CastItem(3077) == false and CastItem(3074) == false and CastW() == false then
+				if CastItem(3077) == false and CastW() == false and CastItems() == false then
 					SendChat('/l')
 				end
 			end
 			if spell.name == 'RivenFengShuiEngine' then -- _R first cast
-				if CastSpell(_E, target.x, target.z) == false and CastItem(3077) == false and CastItem(3074) == false then
+				if CastSpell(_E, target.x, target.z) == false and CastItems() == false then
 					SendChat('/l')
 				end
 			end
@@ -73,7 +73,6 @@ function CastQ(target)
 			return true
 		end
 	end
-
 	return false
 end
 
@@ -82,6 +81,12 @@ function CastW()
 		DelayAction(function() _SOW:resetAA() end, 0.5)
 		return true
 	end
+	return false
+end
 
+function CastItems()
+	if CastItem(3077) or CastItem(3074) then
+		return true
+	end
 	return false
 end
