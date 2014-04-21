@@ -73,6 +73,8 @@ function CastQ(target)
 			return true
 		end
 	end
+
+	return false
 end
 
 function CastW()
@@ -80,4 +82,6 @@ function CastW()
 		DelayAction(function() _SOW:resetAA() end, 0.5)
 		return true
 	end
+
+	return false
 end
