@@ -8,14 +8,23 @@ _SPEEDS = {[_Q] = math.huge, [_E] = 1500, [_R] = 2200} -- E updates in OnDash
 _ANGLES = {[_R] = 45*math.pi/180}
 
 function OnLoad()
-	_MENU = scriptConfig('Devastating Riven', 'driven')
-	_MENU:addParam('enabled', 'Combo', SCRIPT_PARAM_ONKEYDOWN, false, string.byte('A'))
-	_MENU:addParam('ultimate', 'Use ultimate', SCRIPT_PARAM_ONOFF, true)
+	_MENU = scriptConfig('Devastating Riven', 'dsriven')
+	_MENU:addSubMenu('SOW', 'sow')
+	_MENU:addSubMenu('Simple TS', 'sts')
+
+	_MENU:addParam('enabled', 'Combo', SCRIPT_PARAM_ONKEYDOWN, false, 32)
+	_MENU:addParam('useQ', 'Use Q', SCRIPT_PARAM_ONOFF, true)
+	_MENU:addParam('useW', 'Use W', SCRIPT_PARAM_ONOFF, true)
+	_MENU:addParam('useE', 'Use E', SCRIPT_PARAM_ONOFF, true)
+	_MENU:addParam('useR1', 'Use R1', SCRIPT_PARAM_ONOFF, true)
+	_MENU:addParam('useR2', 'Use R2', SCRIPT_PARAM_ONOFF, true)
+	_MENU:addParam('useTiamat', 'Use Tiamat/Hydra', SCRIPT_PARAM_ONOFF, true)
 
 	_TS = SimpleTS(STS_LESS_CAST_PHYSICAL)
+	_TS:AddToMenu(_MENU.sts)
 	_PREDICTION = VPrediction()
 	_SOW = SOW(_PREDICTION)
-	_SOW:LoadToMenu(_MENU, _TS)
+	_SOW:LoadToMenu(_MENU.sow, _TS)
 	_SOW:RegisterAfterAttackCallback(AfterAttack)
 	_SOW.Menu.Mode = 2
 
@@ -23,7 +32,7 @@ function OnLoad()
 	AdvancedCallback:bind('OnUpdateBuff', function(unit, buff) OnBuff(unit, buff, false) end)
 	AdvancedCallback:bind('OnLoseBuff', function(unit, buff) OnBuff(unit, buff, true) end)
 
-	print('[DS] Riven: This is a test lol')
+	print('[DS] Riven: Early Test')
 end
 
 function OnProcessSpell(object, spell)
@@ -42,15 +51,13 @@ function OnProcessSpell(object, spell)
 			if spell.name == 'RivenMartyr' then -- _W
 				DelayAction(function()
 					if CastE(target) == false then
-						if _MENU.ultimate then
-							CastR1()
-						end
+						CastR1()
 					end
 				end, _DELAYS[_W] + GetLatency() / 2000)
 			end
 
 			if spell.name == 'RivenFeint' then -- _E
-				if CastW(target) == false and CastTiamat() == false then
+				if CastW(target) == false and CastR1() == false and CastTiamat() == false then
 					SendChat('/l')
 				end
 			end
@@ -99,7 +106,7 @@ function AfterAttack(target, mode)
 end
 
 function CastQ(target)
-	if ValidTarget(target) then
+	if _MENU.useQ and ValidTarget(target) then
 		local predictionPos = _PREDICTION:GetCircularAOECastPosition(target, _DELAYS[_Q], _RANGES[_Q], _RANGES[_Q], _SPEEDS[_Q], myHero, false)
 
 		if predictionPos ~= nil and  GetDistanceSqr(target.visionPos, predictionPos) <= _RANGES[_Q] * _RANGES[_Q] and CastSpell(_Q, predictionPos.x, predictionPos.z) then
@@ -112,7 +119,7 @@ function CastQ(target)
 end
 
 function CastW(target)
-	if ValidTarget(target) then
+	if _MENU.useW and ValidTarget(target) then
 		local predictionPos = _PREDICTION:GetPredictedPos(target, _DELAYS[_W], nil, myHero, false)
 
 		if predictionPos ~= nil and GetDistanceSqr(target.visionPos, predictionPos) <= _RANGES[_W] * _RANGES[_W] and CastSpell(_W) then
@@ -125,14 +132,16 @@ function CastW(target)
 end
 
 function CastE(target)
-	local predictionPos = _PREDICTION:GetPredictedPos(target, _RANGES[_E] / _SPEEDS[_E], nil, myHero, false)
+	if _MENU.useE and ValidTarget(target) then
+		local predictionPos = _PREDICTION:GetPredictedPos(target, _RANGES[_E] / _SPEEDS[_E], nil, myHero, false)
 
-	if predictionPos ~= nil then
-		local endPos = Vector(myHero.visionPos) + _RANGES[_E] * (Vector(predictionPos) - Vector(myHero.visionPos)):normalized()
+		if predictionPos ~= nil then
+			local endPos = Vector(myHero.visionPos) + _RANGES[_E] * (Vector(predictionPos) - Vector(myHero.visionPos)):normalized()
 
-		if IsWall(D3DXVECTOR3(predictionPos.x, predictionPos.y, predictionPos.z)) == false and CastSpell(_E, predictionPos.x, predictionPos.z) then
-			DelayAction(function() _SOW:resetAA() end, 0.25)
-			return true
+			if IsWall(D3DXVECTOR3(predictionPos.x, predictionPos.y, predictionPos.z)) == false and CastSpell(_E, predictionPos.x, predictionPos.z) then
+				DelayAction(function() _SOW:resetAA() end, 0.25)
+				return true
+			end
 		end
 	end
 
@@ -140,7 +149,7 @@ function CastE(target)
 end
 
 function CastR1(target)
-	if ValidTarget(target) and GetComboDmg(target) > target.health then
+	if _MENU.useR1 and ValidTarget(target) and GetComboDmg(target) > target.health then
 		return CastSpell(_R)
 	end
 
@@ -148,7 +157,7 @@ function CastR1(target)
 end
 
 function CastR2(target)
-	if ValidTarget(target) then
+	if _MENU.useR2 and ValidTarget(target) then
 		local predictionPos = _PREDICTION:GetConeAOECastPosition(target, _DELAYS[_R], _ANGLES[_R], _RANGES[_R], _SPEEDS[_R], myHero)
 
 		if predictionPos ~= nil and GetDistanceSqr(target.visionPos, predictionPos) <= _RANGES[_R] * _RANGES[_R] and CastSpell(_R, predictionPos.x, predictionPos.z) then
@@ -161,7 +170,7 @@ function CastR2(target)
 end
 
 function CastTiamat()
-	if CastItem(3077) or CastItem(3074) then
+	if _MENU.useTiamat and (CastItem(3077) or CastItem(3074)) then
 		DelayAction(function() _SOW:resetAA() end, 0.25)
 		return true
 	end
@@ -198,9 +207,11 @@ function GetComboDmg(target)
 end
 
 function CheckR()
-	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy, _RANGES[_R]) and getDmg('R', enemy, myHero) > enemy.health + enemy.hpRegen/5 * (_DELAYS[_R] + GetDistance(enemy) / _SPEEDS[_R]) then
-			CastR2(enemy)
+	if _MENU.useR2 then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, _RANGES[_R]) and getDmg('R', enemy, myHero) > enemy.health + enemy.hpRegen/5 * (_DELAYS[_R] + GetDistance(enemy) / _SPEEDS[_R]) then
+				CastR2(enemy)
+			end
 		end
 	end
 end
